@@ -20,13 +20,13 @@ dotnet run --project FlappyBird/FlappyBird.csproj
 
 ## Kontroller ve oyun kuralları
 
-- **Boşluk:** Oyunu başlatır veya kuşu yukarı iter. Her zıplama için tuşa yeniden basın.
+- **Boşluk:** Oyunu başlatır veya kuşu yukarı iter. Her zıplama için tuşa yeniden basın. Game Over ekranında Boşluk yeni turu başlatır.
 - İki boru çifti sağdan sola ilerler. Ekrandan çıkan çift sağ tarafta yeni bir açıklıkla tekrar belirir.
 - **Yeni oyun:** Oyun durumunu ve skoru sıfırlar. Yeni turu Boşluk tuşuyla başlatabilirsiniz.
 
 ## Tasarım ve sınırlamalar
 
-`GameState` hareket, çarpışma, engeller ve skoru yönetir. Form klavye olaylarını alır, zamanlayıcıyla oyun durumunu günceller ve ekrana çizer. Çarpışma sınır dikdörtgenleriyle hesaplanır. Skor oturum belleğinde tutulur.
+`GameState` hareket, çarpışma, engeller ve skoru yönetir. Form klavye olaylarını alır, zamanlayıcıyla oyun durumunu günceller ve ekrana çizer. Çarpışma sınır dikdörtgenleriyle hesaplanır. Tur skoru her yeni oyunda sıfırlanır. Rekor, tur sonunda yükselirse Windows kullanıcı profilindeki `%LOCALAPPDATA%/FlappyBird/high-score.txt` dosyasına kaydedilir. Kayıt sorunu varsa oyun devam eder ve arayüzde durum gösterilir.
 
 ## Ekran görüntüleri
 
