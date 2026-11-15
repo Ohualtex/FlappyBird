@@ -30,6 +30,10 @@ dotnet run --project FlappyBird/FlappyBird.csproj
 
 ## Ekran görüntüleri
 
+**Başlangıç**
+
+![Başlangıç ekranı ve klavye komutu](docs/screenshots/start.png)
+
 **Oyun sırasında**
 
 ![Kuş ve iki boru çifti](docs/screenshots/gameplay.png)
