@@ -10,9 +10,13 @@ internal sealed class GameState
     public const int GapHeight = 168;
     private const int PipeSpacing = 275;
 
-    private double velocity;
+    private const int WingFlapDuration = 8;
+
+    private int wingFlapTicks;
 
     public double BirdY { get; private set; }
+    public double BirdVerticalSpeed { get; private set; }
+    public bool IsBirdWingRaised => wingFlapTicks > 0;
     public int Score { get; private set; }
     public bool IsGameOver { get; private set; }
     public IReadOnlyList<Obstacle> Obstacles { get; } = [new(), new()];
@@ -22,14 +26,19 @@ internal sealed class GameState
     public void Reset()
     {
         BirdY = 240;
-        velocity = 0;
+        wingFlapTicks = 0;
+        BirdVerticalSpeed = 0;
         Score = 0;
         IsGameOver = false;
         Place(Obstacles[0], Width + 35, 185);
         Place(Obstacles[1], Width + 35 + PipeSpacing, 255);
     }
 
-    public void Flap() => velocity = -7.8;
+    public void Flap()
+    {
+        BirdVerticalSpeed = -7.8;
+        wingFlapTicks = WingFlapDuration;
+    }
 
     public void Step()
     {
@@ -38,11 +47,16 @@ internal sealed class GameState
             return;
         }
 
-        velocity = Math.Min(velocity + 0.42, 10);
-        BirdY = Math.Max(0, BirdY + velocity);
+        if (wingFlapTicks > 0)
+        {
+            wingFlapTicks--;
+        }
+
+        BirdVerticalSpeed = Math.Min(BirdVerticalSpeed + 0.42, 10);
+        BirdY = Math.Max(0, BirdY + BirdVerticalSpeed);
         if (BirdY == 0)
         {
-            velocity = 0;
+            BirdVerticalSpeed = 0;
         }
 
         foreach (Obstacle obstacle in Obstacles)

@@ -23,7 +23,7 @@ internal sealed class ArcadeRenderer : Component
             DrawPipePair(graphics, obstacle);
         }
 
-        DrawBird(graphics, (int)game.BirdY);
+        DrawBird(graphics, game);
         DrawGround(graphics, bounds);
         if (running)
         {
@@ -95,20 +95,31 @@ internal sealed class ArcadeRenderer : Component
         }
     }
 
-    private static void DrawBird(Graphics graphics, int y)
+    private static void DrawBird(Graphics graphics, GameState game)
     {
-        int x = GameState.BirdX;
-        using var outline = new SolidBrush(Ink);
-        using var body = new SolidBrush(Gold);
-        using var wing = new SolidBrush(Color.FromArgb(238, 143, 39));
-        using var beak = new SolidBrush(Color.FromArgb(245, 108, 56));
-        graphics.FillEllipse(outline, x, y + 1, 26, 26);
-        graphics.FillEllipse(body, x + 2, y + 3, 22, 22);
-        graphics.FillEllipse(wing, x + 3, y + 13, 12, 8);
-        graphics.FillPolygon(beak, [new Point(x + 20, y + 13), new Point(x + 28, y + 16),
-            new Point(x + 22, y + 20)]);
-        graphics.FillEllipse(Brushes.White, x + 15, y + 6, 8, 8);
-        graphics.FillEllipse(outline, x + 19, y + 8, 3, 4);
+        const int center = GameState.BirdSize / 2;
+        float angle = (float)Math.Clamp(game.BirdVerticalSpeed * 3, -24, 30);
+        GraphicsState transform = graphics.Save();
+        try
+        {
+            graphics.TranslateTransform(GameState.BirdX + center, (float)game.BirdY + center);
+            graphics.RotateTransform(angle);
+
+            using var outline = new SolidBrush(Ink);
+            using var body = new SolidBrush(Gold);
+            using var wing = new SolidBrush(Color.FromArgb(238, 143, 39));
+            using var beak = new SolidBrush(Color.FromArgb(245, 108, 56));
+            graphics.FillEllipse(outline, -14, -13, 26, 26);
+            graphics.FillEllipse(body, -12, -11, 22, 22);
+            graphics.FillEllipse(wing, -11, game.IsBirdWingRaised ? -7 : -1, 12, 8);
+            graphics.FillPolygon(beak, [new Point(6, -1), new Point(13, 2), new Point(8, 6)]);
+            graphics.FillEllipse(Brushes.White, 1, -8, 8, 8);
+            graphics.FillEllipse(outline, 5, -6, 3, 4);
+        }
+        finally
+        {
+            graphics.Restore(transform);
+        }
     }
 
     private static void DrawGround(Graphics graphics, Rectangle bounds)
