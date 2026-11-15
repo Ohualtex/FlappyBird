@@ -10,7 +10,7 @@ internal sealed class ArcadeRenderer : Component
     internal static readonly Color Gold = Color.FromArgb(255, 201, 66);
 
     private readonly Font titleFont = new(SystemFonts.MessageBoxFont!.FontFamily, 30, FontStyle.Bold, GraphicsUnit.Pixel);
-    private readonly Font scoreFont = new(SystemFonts.MessageBoxFont!.FontFamily, 32, FontStyle.Bold, GraphicsUnit.Pixel);
+    private readonly Font scoreFont = new(SystemFonts.MessageBoxFont!.FontFamily, 38, FontStyle.Bold, GraphicsUnit.Pixel);
     private readonly Font labelFont = new(SystemFonts.MessageBoxFont!.FontFamily, 14, FontStyle.Bold, GraphicsUnit.Pixel);
     private readonly Font hintFont = new(SystemFonts.MessageBoxFont!.FontFamily, 14, FontStyle.Regular, GraphicsUnit.Pixel);
 
@@ -40,38 +40,6 @@ internal sealed class ArcadeRenderer : Component
             using var background = new SolidBrush(Ink);
             graphics.FillRectangle(background, notice);
             DrawCentered(graphics, scoreMessage, hintFont, Cream, notice);
-        }
-    }
-
-    public static void DrawMenuGear(Graphics graphics, Rectangle bounds)
-    {
-        float size = Math.Min(bounds.Width, bounds.Height);
-        float centerX = bounds.Left + bounds.Width / 2f;
-        float centerY = bounds.Top + bounds.Height / 2f;
-        const int teeth = 8;
-        var points = new PointF[teeth * 4];
-        for (int i = 0; i < points.Length; i++)
-        {
-            double angle = 2 * Math.PI * i / points.Length;
-            float radius = size * (i % 4 is 1 or 2 ? 0.34f : 0.25f);
-            points[i] = new PointF(centerX + radius * (float)Math.Cos(angle),
-                centerY + radius * (float)Math.Sin(angle));
-        }
-
-        var state = graphics.Save();
-        try
-        {
-            graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            using var shape = new GraphicsPath(FillMode.Alternate);
-            shape.AddPolygon(points);
-            float hole = size * 0.20f;
-            shape.AddEllipse(centerX - hole / 2, centerY - hole / 2, hole, hole);
-            using var fill = new SolidBrush(Gold);
-            graphics.FillPath(fill, shape);
-        }
-        finally
-        {
-            graphics.Restore(state);
         }
     }
 
@@ -188,11 +156,25 @@ internal sealed class ArcadeRenderer : Component
 
     private void DrawScore(Graphics graphics, int score, int bestScore)
     {
-        var panel = new Rectangle(170, 15, 140, 66);
-        using var background = new SolidBrush(Ink);
-        graphics.FillRectangle(background, panel);
-        DrawCentered(graphics, score.ToString(), scoreFont, Gold, new Rectangle(170, 18, 140, 38));
-        DrawCentered(graphics, $"Rekor {bestScore}", labelFont, Cream, new Rectangle(170, 54, 140, 20));
+        DrawOutlinedText(graphics, score.ToString(), scoreFont, 5, new Rectangle(150, 10, 180, 42));
+        DrawOutlinedText(graphics, $"Rekor {bestScore}", labelFont, 3, new Rectangle(150, 53, 180, 22));
+    }
+
+    private static void DrawOutlinedText(Graphics graphics, string text, Font font, float outlineWidth, Rectangle bounds)
+    {
+        using var glyphs = new GraphicsPath();
+        using var format = StringFormat.GenericTypographic;
+        glyphs.AddString(text, font.FontFamily, (int)font.Style, font.Size, PointF.Empty, format);
+        RectangleF glyphBounds = glyphs.GetBounds();
+        using var position = new Matrix();
+        position.Translate(bounds.X + (bounds.Width - glyphBounds.Width) / 2 - glyphBounds.X,
+            bounds.Y + (bounds.Height - glyphBounds.Height) / 2 - glyphBounds.Y);
+        glyphs.Transform(position);
+
+        using var outline = new Pen(Ink, outlineWidth) { LineJoin = LineJoin.Round };
+        using var fill = new SolidBrush(Cream);
+        graphics.DrawPath(outline, glyphs);
+        graphics.FillPath(fill, glyphs);
     }
 
     private void DrawMessage(Graphics graphics, bool gameOver, int score, int bestScore)

@@ -59,18 +59,12 @@ public partial class Form1 : Form
             ForeColor = ArcadeRenderer.Cream
         });
 
-        menuButton = new Button
+        menuButton = new GearButton
         {
             AccessibleName = "Oyun menüsü",
             Bounds = MenuButtonBounds,
-            BackColor = ArcadeRenderer.Ink,
-            FlatStyle = FlatStyle.Flat,
-            UseVisualStyleBackColor = false,
             TabStop = true
         };
-        menuButton.FlatAppearance.BorderColor = ArcadeRenderer.Gold;
-        menuButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(42, 70, 85);
-        menuButton.Paint += (_, e) => ArcadeRenderer.DrawMenuGear(e.Graphics, menuButton.ClientRectangle);
         menuButton.Click += (_, _) => gameMenu.Show(menuButton, new Point(0, menuButton.Height + 4));
         menuButton.ContextMenuStrip = gameMenu;
         Controls.Add(menuButton);
@@ -149,7 +143,7 @@ public partial class Form1 : Form
 
         game.Flap();
         gameTimer.Start();
-        Invalidate();
+        Invalidate(invalidateChildren: true);
         return true;
     }
 
@@ -162,7 +156,7 @@ public partial class Form1 : Form
             SaveHighScore();
         }
 
-        Invalidate();
+        Invalidate(invalidateChildren: true);
     }
 
     private void SaveHighScore()
@@ -188,7 +182,7 @@ public partial class Form1 : Form
     {
         gameTimer.Stop();
         game.Reset();
-        Invalidate();
+        Invalidate(invalidateChildren: true);
     }
 
     private RectangleF GetGameViewport()
@@ -216,7 +210,7 @@ public partial class Form1 : Form
             MenuButtonBounds.Width * scale,
             MenuButtonBounds.Height * scale));
 
-        Invalidate();
+        Invalidate(invalidateChildren: true);
     }
 
     protected override void OnPaint(PaintEventArgs e)
