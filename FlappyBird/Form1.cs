@@ -5,7 +5,17 @@ public partial class Form1 : Form
     private readonly GameState game = new();
     private readonly System.Windows.Forms.Timer gameTimer;
 
-    public Form1()
+    private readonly HighScoreStore highScoreStore;
+    private int bestScore;
+    private string? scoreMessage;
+
+    public Form1() : this(new HighScoreStore(Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "FlappyBird", "high-score.txt")))
+    {
+    }
+
+    internal Form1(HighScoreStore highScoreStore)
     {
         InitializeComponent();
         Text = "Flappy Bird";
@@ -13,6 +23,12 @@ public partial class Form1 : Form
         FormBorderStyle = FormBorderStyle.FixedSingle;
         MaximizeBox = false;
         DoubleBuffered = true;
+
+        this.highScoreStore = highScoreStore;
+        if (!highScoreStore.TryLoad(out bestScore))
+        {
+            scoreMessage = "Rekor okunamadı.";
+        }
 
         gameTimer = new System.Windows.Forms.Timer(components ??= new System.ComponentModel.Container())
         {
@@ -61,9 +77,29 @@ public partial class Form1 : Form
         if (game.IsGameOver)
         {
             gameTimer.Stop();
+            SaveHighScore();
         }
 
         Invalidate();
+    }
+
+    private void SaveHighScore()
+    {
+        if (game.Score <= bestScore)
+        {
+            return;
+        }
+
+        bestScore = game.Score;
+        if (highScoreStore.TrySave(bestScore, out int savedScore))
+        {
+            bestScore = savedScore;
+            scoreMessage = null;
+        }
+        else
+        {
+            scoreMessage = "Rekor kaydedilemedi.";
+        }
     }
 
     private void ResetGame()
@@ -91,7 +127,12 @@ public partial class Form1 : Form
         int birdY = (int)game.BirdY;
         graphics.FillEllipse(Brushes.Gold, GameState.BirdX, birdY, GameState.BirdSize, GameState.BirdSize);
         graphics.FillEllipse(Brushes.Black, GameState.BirdX + 18, birdY + 7, 4, 4);
-        TextRenderer.DrawText(graphics, $"Skor: {game.Score}", Font, new Point(15, 608), Color.Black);
+        TextRenderer.DrawText(graphics, $"Skor: {game.Score}     Rekor: {bestScore}",
+            Font, new Point(15, 600), Color.Black);
+        if (scoreMessage is not null)
+        {
+            TextRenderer.DrawText(graphics, scoreMessage, Font, new Point(15, 619), Color.Maroon);
+        }
 
         if (!gameTimer.Enabled)
         {
