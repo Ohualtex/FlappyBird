@@ -22,7 +22,7 @@ dotnet run --project FlappyBird/FlappyBird.csproj
 
 - **Boşluk:** Oyunu başlatır veya kuşu yukarı iter. Her zıplama için tuşa yeniden basın. Game Over ekranında Boşluk yeni turu başlatır.
 - İki boru çifti sağdan sola ilerler. Ekrandan çıkan çift sağ tarafta yeni bir açıklıkla tekrar belirir.
-- **Yeni oyun:** Oyun durumunu ve skoru sıfırlar. Yeni turu Boşluk tuşuyla başlatabilirsiniz.
+- **Çark → Yeni oyun:** Sol üst köşedeki oyun menüsünden oyun durumunu ve skoru sıfırlar. Yeni turu Boşluk tuşuyla başlatabilirsiniz.
 
 Pencere oyun alanının 3:4 oranını koruyarak kenardan veya köşeden yeniden boyutlandırılabilir. Büyüt düğmesi pencereyi monitörün kullanılabilir alanına sığan en büyük boyuta getirir. Düğmeye tekrar basarak önceki boyuta dönebilirsiniz. Minimum oyun alanı 480 × 640 pikseldir.
 
