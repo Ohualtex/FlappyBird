@@ -3,6 +3,7 @@ namespace FlappyBird;
 public partial class Form1 : Form
 {
     private readonly GameState game = new();
+    private readonly ArcadeRenderer renderer = new();
     private readonly System.Windows.Forms.Timer gameTimer;
 
     private readonly HighScoreStore highScoreStore;
@@ -23,6 +24,7 @@ public partial class Form1 : Form
         FormBorderStyle = FormBorderStyle.FixedSingle;
         MaximizeBox = false;
         DoubleBuffered = true;
+        (components ??= new System.ComponentModel.Container()).Add(renderer);
 
         this.highScoreStore = highScoreStore;
         if (!highScoreStore.TryLoad(out bestScore))
@@ -30,7 +32,7 @@ public partial class Form1 : Form
             scoreMessage = "Rekor okunamadı.";
         }
 
-        gameTimer = new System.Windows.Forms.Timer(components ??= new System.ComponentModel.Container())
+        gameTimer = new System.Windows.Forms.Timer(components)
         {
             Interval = 16
         };
@@ -39,9 +41,14 @@ public partial class Form1 : Form
         var restartButton = new Button
         {
             Text = "Yeni oyun",
-            Bounds = new Rectangle(355, 601, 110, 29),
-            TabStop = false
+            Bounds = new Rectangle(346, 602, 116, 29),
+            BackColor = ArcadeRenderer.Gold,
+            ForeColor = ArcadeRenderer.Ink,
+            FlatStyle = FlatStyle.Flat,
+            UseVisualStyleBackColor = false,
+            TabStop = true
         };
+        restartButton.FlatAppearance.BorderColor = ArcadeRenderer.Cream;
         restartButton.Click += (_, _) => ResetGame();
         Controls.Add(restartButton);
     }
@@ -112,35 +119,6 @@ public partial class Form1 : Form
     protected override void OnPaint(PaintEventArgs e)
     {
         base.OnPaint(e);
-        Graphics graphics = e.Graphics;
-        graphics.Clear(Color.FromArgb(163, 222, 249));
-
-        foreach (GameState.Obstacle obstacle in game.Obstacles)
-        {
-            int gapBottom = obstacle.GapTop + GameState.GapHeight;
-            graphics.FillRectangle(Brushes.SeaGreen, obstacle.X, 0, GameState.PipeWidth, obstacle.GapTop);
-            graphics.FillRectangle(Brushes.SeaGreen, obstacle.X, gapBottom,
-                GameState.PipeWidth, GameState.GroundY - gapBottom);
-        }
-
-        graphics.FillRectangle(Brushes.Wheat, 0, GameState.GroundY, GameState.Width, 50);
-        int birdY = (int)game.BirdY;
-        graphics.FillEllipse(Brushes.Gold, GameState.BirdX, birdY, GameState.BirdSize, GameState.BirdSize);
-        graphics.FillEllipse(Brushes.Black, GameState.BirdX + 18, birdY + 7, 4, 4);
-        TextRenderer.DrawText(graphics, $"Skor: {game.Score}     Rekor: {bestScore}",
-            Font, new Point(15, 600), Color.Black);
-        if (scoreMessage is not null)
-        {
-            TextRenderer.DrawText(graphics, scoreMessage, Font, new Point(15, 619), Color.Maroon);
-        }
-
-        if (!gameTimer.Enabled)
-        {
-            string message = game.IsGameOver ? "Game Over — Yeniden denemek için Boşluk" : "Başlamak için Boşluk tuşuna bas";
-            var banner = new Rectangle(35, 80, GameState.Width - 70, 45);
-            graphics.FillRectangle(Brushes.WhiteSmoke, banner);
-            TextRenderer.DrawText(graphics, message, Font, banner, Color.Black,
-                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
-        }
+        renderer.Draw(e.Graphics, ClientRectangle, game, gameTimer.Enabled, bestScore, scoreMessage);
     }
 }
