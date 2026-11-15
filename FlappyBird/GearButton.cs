@@ -6,13 +6,14 @@ internal sealed class GearButton : Button
 {
     private const float OuterRadius = 0.44f;
     private const float OutlineWidth = 0.055f;
+    private readonly Action<Graphics, Point> drawScene;
     private bool hovered;
 
-    public GearButton()
+    public GearButton(Action<Graphics, Point> drawScene)
     {
-        SetStyle(ControlStyles.SupportsTransparentBackColor | ControlStyles.UserPaint
+        this.drawScene = drawScene;
+        SetStyle(ControlStyles.Opaque | ControlStyles.UserPaint
             | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
-        BackColor = Color.Transparent;
         UseVisualStyleBackColor = false;
         FlatStyle = FlatStyle.Flat;
     }
@@ -66,6 +67,8 @@ internal sealed class GearButton : Button
         {
             return;
         }
+
+        drawScene(e.Graphics, Location);
 
         float centerX = ClientSize.Width / 2f;
         float centerY = ClientSize.Height / 2f;

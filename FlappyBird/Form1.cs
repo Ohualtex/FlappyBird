@@ -59,7 +59,7 @@ public partial class Form1 : Form
             ForeColor = ArcadeRenderer.Cream
         });
 
-        menuButton = new GearButton
+        menuButton = new GearButton(DrawScene)
         {
             AccessibleName = "Oyun menüsü",
             Bounds = MenuButtonBounds,
@@ -216,6 +216,11 @@ public partial class Form1 : Form
     protected override void OnPaint(PaintEventArgs e)
     {
         base.OnPaint(e);
+        DrawScene(e.Graphics, Point.Empty);
+    }
+
+    private void DrawScene(Graphics graphics, Point clientOffset)
+    {
         RectangleF viewport = GetGameViewport();
         if (viewport.Width <= 0)
         {
@@ -223,7 +228,7 @@ public partial class Form1 : Form
         }
 
         float scale = viewport.Width / GameState.Width;
-        var graphics = e.Graphics;
+        viewport.Offset(-clientOffset.X, -clientOffset.Y);
         var state = graphics.Save();
         try
         {
