@@ -1,4 +1,5 @@
 using System.Drawing.Drawing2D;
+using System.Runtime.InteropServices;
 
 namespace FlappyBird;
 
@@ -12,6 +13,7 @@ public partial class Form1 : Form
     private readonly System.Windows.Forms.Timer gameTimer;
     private readonly Button restartButton;
     private Font? scaledRestartFont;
+    private Rectangle? restoreWindowBounds;
 
     private readonly HighScoreStore highScoreStore;
     private int bestScore;
@@ -62,6 +64,56 @@ public partial class Form1 : Form
         Controls.Add(restartButton);
         ClientSizeChanged += (_, _) => LayoutGame();
         LayoutGame();
+    }
+
+    protected override void WndProc(ref Message message)
+    {
+        const int sizingMessage = 0x0214;
+        const int systemCommand = 0x0112;
+        const int maximizeCommand = 0xF030;
+
+        if (message.Msg == sizingMessage)
+        {
+            restoreWindowBounds = null;
+            var drag = Marshal.PtrToStructure<NativeRectangle>(message.LParam);
+            Rectangle proposed = Rectangle.FromLTRB(drag.Left, drag.Top, drag.Right, drag.Bottom);
+            Rectangle workArea = Screen.FromRectangle(proposed).WorkingArea;
+            Rectangle constrained = WindowSizing.ConstrainDrag(proposed, Bounds, workArea, GetFrameSize(),
+                (WindowSizing.DragEdge)message.WParam.ToInt32());
+            Marshal.StructureToPtr(new NativeRectangle(constrained), message.LParam, false);
+            message.Result = 1;
+            return;
+        }
+
+        if (message.Msg == systemCommand && (message.WParam.ToInt64() & 0xFFF0) == maximizeCommand)
+        {
+            if (restoreWindowBounds is Rectangle restore)
+            {
+                restoreWindowBounds = null;
+                Bounds = restore;
+            }
+            else
+            {
+                restoreWindowBounds = Bounds;
+                Bounds = WindowSizing.LargestBounds(Screen.FromControl(this).WorkingArea, GetFrameSize());
+            }
+
+            return;
+        }
+
+        base.WndProc(ref message);
+    }
+
+    private Size GetFrameSize() => SizeFromClientSize(new Size(GameState.Width, GameHeight))
+        - new Size(GameState.Width, GameHeight);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct NativeRectangle(Rectangle rectangle)
+    {
+        public int Left = rectangle.Left;
+        public int Top = rectangle.Top;
+        public int Right = rectangle.Right;
+        public int Bottom = rectangle.Bottom;
     }
 
     protected override bool ProcessCmdKey(ref Message message, Keys keyData)
