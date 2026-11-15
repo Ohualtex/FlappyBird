@@ -24,7 +24,7 @@ dotnet run --project FlappyBird/FlappyBird.csproj
 - İki boru çifti sağdan sola ilerler. Ekrandan çıkan çift sağ tarafta yeni bir açıklıkla tekrar belirir.
 - **Yeni oyun:** Oyun durumunu ve skoru sıfırlar. Yeni turu Boşluk tuşuyla başlatabilirsiniz.
 
-Pencere köşeden sürüklenerek büyütülebilir veya ekranı kaplayacak şekilde büyütülebilir. Oyun alanı şeklini koruyarak ortalanır ve en az 480 × 640 piksel boyutundadır.
+Pencere oyun alanının 3:4 oranını koruyarak kenardan veya köşeden yeniden boyutlandırılabilir. Büyüt düğmesi pencereyi monitörün kullanılabilir alanına sığan en büyük boyuta getirir. Düğmeye tekrar basarak önceki boyuta dönebilirsiniz. Minimum oyun alanı 480 × 640 pikseldir.
 
 ## Tasarım ve sınırlamalar
 
