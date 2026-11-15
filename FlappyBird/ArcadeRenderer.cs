@@ -36,8 +36,42 @@ internal sealed class ArcadeRenderer : Component
 
         if (scoreMessage is not null)
         {
-            using var textBrush = new SolidBrush(Cream);
-            graphics.DrawString(scoreMessage, hintFont, textBrush, new PointF(18, 608));
+            var notice = new Rectangle(323, 16, 141, 42);
+            using var background = new SolidBrush(Ink);
+            graphics.FillRectangle(background, notice);
+            DrawCentered(graphics, scoreMessage, hintFont, Cream, notice);
+        }
+    }
+
+    public static void DrawMenuGear(Graphics graphics, Rectangle bounds)
+    {
+        float size = Math.Min(bounds.Width, bounds.Height);
+        float centerX = bounds.Left + bounds.Width / 2f;
+        float centerY = bounds.Top + bounds.Height / 2f;
+        const int teeth = 8;
+        var points = new PointF[teeth * 4];
+        for (int i = 0; i < points.Length; i++)
+        {
+            double angle = 2 * Math.PI * i / points.Length;
+            float radius = size * (i % 4 is 1 or 2 ? 0.34f : 0.25f);
+            points[i] = new PointF(centerX + radius * (float)Math.Cos(angle),
+                centerY + radius * (float)Math.Sin(angle));
+        }
+
+        var state = graphics.Save();
+        try
+        {
+            graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            using var shape = new GraphicsPath(FillMode.Alternate);
+            shape.AddPolygon(points);
+            float hole = size * 0.20f;
+            shape.AddEllipse(centerX - hole / 2, centerY - hole / 2, hole, hole);
+            using var fill = new SolidBrush(Gold);
+            graphics.FillPath(fill, shape);
+        }
+        finally
+        {
+            graphics.Restore(state);
         }
     }
 
@@ -126,16 +160,30 @@ internal sealed class ArcadeRenderer : Component
     private static void DrawGround(Graphics graphics, Rectangle bounds)
     {
         int top = GameState.GroundY;
-        using var soil = new SolidBrush(Ink);
-        using var grass = new SolidBrush(Color.FromArgb(144, 210, 107));
-        using var shade = new SolidBrush(Color.FromArgb(42, 76, 79));
-        graphics.FillRectangle(soil, 0, top, bounds.Width, bounds.Height - top);
-        graphics.FillRectangle(grass, 0, top, bounds.Width, 5);
-        for (int x = 0; x < bounds.Width; x += 24)
+        var ground = new Rectangle(0, top, bounds.Width, bounds.Height - top);
+        using var soil = new LinearGradientBrush(ground, Color.FromArgb(192, 127, 69),
+            Color.FromArgb(133, 77, 50), LinearGradientMode.Vertical);
+        using var shade = new SolidBrush(Color.FromArgb(127, 74, 47));
+        using var gravel = new SolidBrush(Color.FromArgb(229, 163, 99));
+        using var grass = new SolidBrush(Color.FromArgb(112, 166, 66));
+        using var grassLight = new SolidBrush(Color.FromArgb(179, 213, 97));
+
+        graphics.FillRectangle(soil, ground);
+        for (int x = 0; x < bounds.Width; x += 31)
         {
-            graphics.FillPolygon(shade, [new Point(x, top + 5), new Point(x + 11, top + 5),
-                new Point(x + 5, top + 12), new Point(x, top + 12)]);
+            graphics.FillEllipse(shade, x + 4, top + 22, 8, 4);
+            graphics.FillEllipse(gravel, x + 17, top + 35, 5, 3);
+            graphics.FillEllipse(gravel, x + 25, top + 18, 3, 3);
+            graphics.FillEllipse(shade, x + 24, top + 42, 4, 2);
         }
+
+        graphics.FillRectangle(grass, 0, top, bounds.Width, 11);
+        for (int x = 0; x < bounds.Width; x += 18)
+        {
+            graphics.FillEllipse(grass, x, top + 7, 14, 6);
+        }
+
+        graphics.FillRectangle(grassLight, 0, top, bounds.Width, 3);
     }
 
     private void DrawScore(Graphics graphics, int score, int bestScore)

@@ -6,13 +6,12 @@ namespace FlappyBird;
 public partial class Form1 : Form
 {
     private const int GameHeight = 640;
-    private static readonly Rectangle RestartButtonBounds = new(346, 602, 116, 29);
+    private static readonly Rectangle MenuButtonBounds = new(16, 16, 44, 44);
 
     private readonly GameState game = new();
     private readonly ArcadeRenderer renderer = new();
     private readonly System.Windows.Forms.Timer gameTimer;
-    private readonly Button restartButton;
-    private Font? scaledRestartFont;
+    private readonly Button menuButton;
     private Rectangle? restoreWindowBounds;
 
     private readonly HighScoreStore highScoreStore;
@@ -48,20 +47,33 @@ public partial class Form1 : Form
         };
         gameTimer.Tick += AdvanceGame;
 
-        restartButton = new Button
+        var gameMenu = new ContextMenuStrip(components)
         {
-            Text = "Yeni oyun",
-            Bounds = RestartButtonBounds,
-            BackColor = ArcadeRenderer.Gold,
-            ForeColor = ArcadeRenderer.Ink,
+            BackColor = ArcadeRenderer.Ink,
+            ForeColor = ArcadeRenderer.Cream,
+            ShowImageMargin = false,
+            Renderer = new ToolStripProfessionalRenderer(new GameMenuColors())
+        };
+        gameMenu.Items.Add(new ToolStripMenuItem("Yeni oyun", null, (_, _) => ResetGame())
+        {
+            ForeColor = ArcadeRenderer.Cream
+        });
+
+        menuButton = new Button
+        {
+            AccessibleName = "Oyun menüsü",
+            Bounds = MenuButtonBounds,
+            BackColor = ArcadeRenderer.Ink,
             FlatStyle = FlatStyle.Flat,
             UseVisualStyleBackColor = false,
             TabStop = true
         };
-        restartButton.FlatAppearance.BorderColor = ArcadeRenderer.Cream;
-        restartButton.Click += (_, _) => ResetGame();
-        restartButton.Disposed += (_, _) => scaledRestartFont?.Dispose();
-        Controls.Add(restartButton);
+        menuButton.FlatAppearance.BorderColor = ArcadeRenderer.Gold;
+        menuButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(42, 70, 85);
+        menuButton.Paint += (_, e) => ArcadeRenderer.DrawMenuGear(e.Graphics, menuButton.ClientRectangle);
+        menuButton.Click += (_, _) => gameMenu.Show(menuButton, new Point(0, menuButton.Height + 4));
+        menuButton.ContextMenuStrip = gameMenu;
+        Controls.Add(menuButton);
         ClientSizeChanged += (_, _) => LayoutGame();
         LayoutGame();
     }
@@ -198,20 +210,11 @@ public partial class Form1 : Form
         }
 
         float scale = viewport.Width / GameState.Width;
-        restartButton.Bounds = Rectangle.Round(new RectangleF(
-            viewport.Left + RestartButtonBounds.X * scale,
-            viewport.Top + RestartButtonBounds.Y * scale,
-            RestartButtonBounds.Width * scale,
-            RestartButtonBounds.Height * scale));
-
-        float scaledFontSize = Font.Size * scale;
-        if (Math.Abs(restartButton.Font.Size - scaledFontSize) >= 0.1f)
-        {
-            Font? previousFont = scaledRestartFont;
-            scaledRestartFont = scale == 1 ? null : new Font(Font.FontFamily, scaledFontSize, Font.Style, Font.Unit);
-            restartButton.Font = scaledRestartFont;
-            previousFont?.Dispose();
-        }
+        menuButton.Bounds = Rectangle.Round(new RectangleF(
+            viewport.Left + MenuButtonBounds.X * scale,
+            viewport.Top + MenuButtonBounds.Y * scale,
+            MenuButtonBounds.Width * scale,
+            MenuButtonBounds.Height * scale));
 
         Invalidate();
     }
@@ -240,5 +243,13 @@ public partial class Form1 : Form
         {
             graphics.Restore(state);
         }
+    }
+
+    private sealed class GameMenuColors : ProfessionalColorTable
+    {
+        public override Color ToolStripDropDownBackground => ArcadeRenderer.Ink;
+        public override Color MenuBorder => ArcadeRenderer.Gold;
+        public override Color MenuItemSelected => Color.FromArgb(42, 70, 85);
+        public override Color MenuItemBorder => ArcadeRenderer.Gold;
     }
 }
