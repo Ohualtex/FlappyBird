@@ -4,7 +4,6 @@ public partial class Form1 : Form
 {
     private readonly GameState game = new();
     private readonly System.Windows.Forms.Timer gameTimer;
-    private bool spaceHeld;
 
     public Form1()
     {
@@ -14,7 +13,6 @@ public partial class Form1 : Form
         FormBorderStyle = FormBorderStyle.FixedSingle;
         MaximizeBox = false;
         DoubleBuffered = true;
-        KeyPreview = true;
 
         gameTimer = new System.Windows.Forms.Timer(components ??= new System.ComponentModel.Container())
         {
@@ -32,39 +30,29 @@ public partial class Form1 : Form
         Controls.Add(restartButton);
     }
 
-    protected override void OnKeyDown(KeyEventArgs e)
+    protected override bool ProcessCmdKey(ref Message message, Keys keyData)
     {
-        base.OnKeyDown(e);
-        if (e.KeyCode != Keys.Space)
+        if ((keyData & Keys.KeyCode) != Keys.Space)
         {
-            return;
+            return base.ProcessCmdKey(ref message, keyData);
         }
 
-        e.SuppressKeyPress = true;
-        if (!spaceHeld && !game.IsGameOver)
+        // Windows sets bit 30 when the key was already down before this message.
+        const long previousKeyState = 1L << 30;
+        if ((message.LParam.ToInt64() & previousKeyState) != 0)
         {
-            game.Flap();
-            gameTimer.Start();
-            Invalidate();
+            return true;
         }
 
-        spaceHeld = true;
-    }
-
-    protected override void OnKeyUp(KeyEventArgs e)
-    {
-        base.OnKeyUp(e);
-        if (e.KeyCode == Keys.Space)
+        if (game.IsGameOver)
         {
-            spaceHeld = false;
-            e.Handled = true;
+            ResetGame();
         }
-    }
 
-    protected override void OnDeactivate(EventArgs e)
-    {
-        spaceHeld = false;
-        base.OnDeactivate(e);
+        game.Flap();
+        gameTimer.Start();
+        Invalidate();
+        return true;
     }
 
     private void AdvanceGame(object? sender, EventArgs e)
@@ -107,7 +95,7 @@ public partial class Form1 : Form
 
         if (!gameTimer.Enabled)
         {
-            string message = game.IsGameOver ? "Game Over" : "Başlamak için Boşluk tuşuna bas";
+            string message = game.IsGameOver ? "Game Over — Yeniden denemek için Boşluk" : "Başlamak için Boşluk tuşuna bas";
             var banner = new Rectangle(35, 80, GameState.Width - 70, 45);
             graphics.FillRectangle(Brushes.WhiteSmoke, banner);
             TextRenderer.DrawText(graphics, message, Font, banner, Color.Black,
