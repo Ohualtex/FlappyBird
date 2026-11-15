@@ -1,10 +1,17 @@
+using System.Drawing.Drawing2D;
+
 namespace FlappyBird;
 
 public partial class Form1 : Form
 {
+    private const int GameHeight = 640;
+    private static readonly Rectangle RestartButtonBounds = new(346, 602, 116, 29);
+
     private readonly GameState game = new();
     private readonly ArcadeRenderer renderer = new();
     private readonly System.Windows.Forms.Timer gameTimer;
+    private readonly Button restartButton;
+    private Font? scaledRestartFont;
 
     private readonly HighScoreStore highScoreStore;
     private int bestScore;
@@ -20,9 +27,10 @@ public partial class Form1 : Form
     {
         InitializeComponent();
         Text = "Flappy Bird";
-        ClientSize = new Size(GameState.Width, 640);
-        FormBorderStyle = FormBorderStyle.FixedSingle;
-        MaximizeBox = false;
+        FormBorderStyle = FormBorderStyle.Sizable;
+        ClientSize = new Size(GameState.Width, GameHeight);
+        MinimumSize = SizeFromClientSize(ClientSize);
+        BackColor = ArcadeRenderer.Ink;
         DoubleBuffered = true;
         (components ??= new System.ComponentModel.Container()).Add(renderer);
 
@@ -38,10 +46,10 @@ public partial class Form1 : Form
         };
         gameTimer.Tick += AdvanceGame;
 
-        var restartButton = new Button
+        restartButton = new Button
         {
             Text = "Yeni oyun",
-            Bounds = new Rectangle(346, 602, 116, 29),
+            Bounds = RestartButtonBounds,
             BackColor = ArcadeRenderer.Gold,
             ForeColor = ArcadeRenderer.Ink,
             FlatStyle = FlatStyle.Flat,
@@ -50,7 +58,10 @@ public partial class Form1 : Form
         };
         restartButton.FlatAppearance.BorderColor = ArcadeRenderer.Cream;
         restartButton.Click += (_, _) => ResetGame();
+        restartButton.Disposed += (_, _) => scaledRestartFont?.Dispose();
         Controls.Add(restartButton);
+        ClientSizeChanged += (_, _) => LayoutGame();
+        LayoutGame();
     }
 
     protected override bool ProcessCmdKey(ref Message message, Keys keyData)
@@ -116,9 +127,66 @@ public partial class Form1 : Form
         Invalidate();
     }
 
+    private RectangleF GetGameViewport()
+    {
+        float scale = Math.Min((float)ClientSize.Width / GameState.Width,
+            (float)ClientSize.Height / GameHeight);
+        float width = GameState.Width * scale;
+        float height = GameHeight * scale;
+        return new RectangleF((ClientSize.Width - width) / 2,
+            (ClientSize.Height - height) / 2, width, height);
+    }
+
+    private void LayoutGame()
+    {
+        RectangleF viewport = GetGameViewport();
+        if (viewport.Width <= 0)
+        {
+            return;
+        }
+
+        float scale = viewport.Width / GameState.Width;
+        restartButton.Bounds = Rectangle.Round(new RectangleF(
+            viewport.Left + RestartButtonBounds.X * scale,
+            viewport.Top + RestartButtonBounds.Y * scale,
+            RestartButtonBounds.Width * scale,
+            RestartButtonBounds.Height * scale));
+
+        float scaledFontSize = Font.Size * scale;
+        if (Math.Abs(restartButton.Font.Size - scaledFontSize) >= 0.1f)
+        {
+            Font? previousFont = scaledRestartFont;
+            scaledRestartFont = scale == 1 ? null : new Font(Font.FontFamily, scaledFontSize, Font.Style, Font.Unit);
+            restartButton.Font = scaledRestartFont;
+            previousFont?.Dispose();
+        }
+
+        Invalidate();
+    }
+
     protected override void OnPaint(PaintEventArgs e)
     {
         base.OnPaint(e);
-        renderer.Draw(e.Graphics, ClientRectangle, game, gameTimer.Enabled, bestScore, scoreMessage);
+        RectangleF viewport = GetGameViewport();
+        if (viewport.Width <= 0)
+        {
+            return;
+        }
+
+        float scale = viewport.Width / GameState.Width;
+        var graphics = e.Graphics;
+        var state = graphics.Save();
+        try
+        {
+            graphics.SetClip(viewport, CombineMode.Intersect);
+            graphics.TranslateTransform(viewport.Left, viewport.Top);
+            graphics.ScaleTransform(scale, scale);
+            renderer.Draw(graphics, new Rectangle(0, 0, GameState.Width, GameHeight),
+                game, gameTimer.Enabled, bestScore, scoreMessage);
+        }
+        finally
+        {
+            graphics.Restore(state);
+        }
     }
 }

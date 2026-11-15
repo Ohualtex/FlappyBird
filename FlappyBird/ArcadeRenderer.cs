@@ -36,7 +36,8 @@ internal sealed class ArcadeRenderer : Component
 
         if (scoreMessage is not null)
         {
-            TextRenderer.DrawText(graphics, scoreMessage, hintFont, new Point(18, 608), Cream);
+            using var textBrush = new SolidBrush(Cream);
+            graphics.DrawString(scoreMessage, hintFont, textBrush, new PointF(18, 608));
         }
     }
 
@@ -169,8 +170,13 @@ internal sealed class ArcadeRenderer : Component
 
     private static void DrawCentered(Graphics graphics, string text, Font font, Color color, Rectangle bounds)
     {
-        TextRenderer.DrawText(graphics, text, font, bounds, color,
-            TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
+        using var textBrush = new SolidBrush(color);
+        using var alignment = new StringFormat
+        {
+            Alignment = StringAlignment.Center,
+            LineAlignment = StringAlignment.Center
+        };
+        graphics.DrawString(text, font, textBrush, bounds, alignment);
     }
 
     protected override void Dispose(bool disposing)
