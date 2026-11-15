@@ -24,6 +24,8 @@ dotnet run --project FlappyBird/FlappyBird.csproj
 - İki boru çifti sağdan sola ilerler. Ekrandan çıkan çift sağ tarafta yeni bir açıklıkla tekrar belirir.
 - **Yeni oyun:** Oyun durumunu ve skoru sıfırlar. Yeni turu Boşluk tuşuyla başlatabilirsiniz.
 
+Pencere köşeden sürüklenerek büyütülebilir veya ekranı kaplayacak şekilde büyütülebilir. Oyun alanı şeklini koruyarak ortalanır ve en az 480 × 640 piksel boyutundadır.
+
 ## Tasarım ve sınırlamalar
 
 `GameState` hareket, çarpışma, engeller ve skoru yönetir. Form klavye olaylarını alır, zamanlayıcıyla oyun durumunu günceller ve ekrana çizer. Çarpışma sınır dikdörtgenleriyle hesaplanır. Tur skoru her yeni oyunda sıfırlanır. Rekor, tur sonunda yükselirse Windows kullanıcı profilindeki `%LOCALAPPDATA%/FlappyBird/high-score.txt` dosyasına kaydedilir. Kayıt sorunu varsa oyun devam eder ve arayüzde durum gösterilir.
