@@ -3,7 +3,7 @@ namespace FlappyBird;
 internal sealed class GameState
 {
     public const int Width = 480;
-    public const int GroundY = 590;
+    public const int GroundY = 566;
     public const int BirdX = 95;
     public const int BirdSize = 28;
     public const int PipeWidth = 72;
