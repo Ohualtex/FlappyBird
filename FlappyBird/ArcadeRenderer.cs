@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.ComponentModel;
 using System.Drawing.Drawing2D;
 
@@ -19,7 +20,6 @@ internal sealed class ArcadeRenderer : Component
 
     private readonly Bitmap groundStrip = CreateGroundStrip();
     private readonly Font titleFont = new(SystemFonts.MessageBoxFont!.FontFamily, 30, FontStyle.Bold, GraphicsUnit.Pixel);
-    private readonly Font scoreFont = new(SystemFonts.MessageBoxFont!.FontFamily, 38, FontStyle.Bold, GraphicsUnit.Pixel);
     private readonly Font labelFont = new(SystemFonts.MessageBoxFont!.FontFamily, 14, FontStyle.Bold, GraphicsUnit.Pixel);
     private readonly Font hintFont = new(SystemFonts.MessageBoxFont!.FontFamily, 14, FontStyle.Regular, GraphicsUnit.Pixel);
 
@@ -183,27 +183,11 @@ internal sealed class ArcadeRenderer : Component
             new Rectangle(-offset, top, groundStrip.Width * GroundPixelScale, bounds.Height - top));
     }
 
-    private void DrawScore(Graphics graphics, int score, int bestScore)
+    private static void DrawScore(Graphics graphics, int score, int bestScore)
     {
-        DrawOutlinedText(graphics, score.ToString(), scoreFont, 5, new Rectangle(150, 10, 180, 42));
-        DrawOutlinedText(graphics, $"Rekor {bestScore}", labelFont, 3, new Rectangle(150, 53, 180, 22));
-    }
-
-    private static void DrawOutlinedText(Graphics graphics, string text, Font font, float outlineWidth, Rectangle bounds)
-    {
-        using var glyphs = new GraphicsPath();
-        using var format = StringFormat.GenericTypographic;
-        glyphs.AddString(text, font.FontFamily, (int)font.Style, font.Size, PointF.Empty, format);
-        RectangleF glyphBounds = glyphs.GetBounds();
-        using var position = new Matrix();
-        position.Translate(bounds.X + (bounds.Width - glyphBounds.Width) / 2 - glyphBounds.X,
-            bounds.Y + (bounds.Height - glyphBounds.Height) / 2 - glyphBounds.Y);
-        glyphs.Transform(position);
-
-        using var outline = new Pen(Ink, outlineWidth) { LineJoin = LineJoin.Round };
-        using var fill = new SolidBrush(Cream);
-        graphics.DrawPath(outline, glyphs);
-        graphics.FillPath(fill, glyphs);
+        PixelScore.Draw(graphics, score.ToString(CultureInfo.InvariantCulture), new Rectangle(105, 10, 270, 42), 4, 2);
+        PixelScore.Draw(graphics, "REKOR " + bestScore.ToString(CultureInfo.InvariantCulture),
+            new Rectangle(105, 53, 270, 22), 2, 1);
     }
 
     private void DrawMessage(Graphics graphics, bool gameOver, int score, int bestScore)
@@ -249,7 +233,6 @@ internal sealed class ArcadeRenderer : Component
             pipeCap.Dispose();
             groundStrip.Dispose();
             titleFont.Dispose();
-            scoreFont.Dispose();
             labelFont.Dispose();
             hintFont.Dispose();
         }
