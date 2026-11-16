@@ -29,8 +29,12 @@ public partial class Form1 : Form
         InitializeComponent();
         Text = "Flappy Bird";
         FormBorderStyle = FormBorderStyle.Sizable;
-        ClientSize = new Size(GameState.Width, GameHeight);
-        MinimumSize = SizeFromClientSize(ClientSize);
+        Size frame = GetFrameSize();
+        MinimumSize = SizeFromClientSize(new Size(GameState.Width, GameHeight));
+        Rectangle workArea = Screen.FromRectangle(Bounds).WorkingArea;
+        const int preferredWidth = 576;
+        int startupWidth = Math.Min(preferredWidth, WindowSizing.LargestBounds(workArea, frame).Width - frame.Width);
+        ClientSize = new Size(startupWidth, startupWidth * GameHeight / GameState.Width);
         BackColor = ArcadeRenderer.Ink;
         DoubleBuffered = true;
         (components ??= new System.ComponentModel.Container()).Add(renderer);
