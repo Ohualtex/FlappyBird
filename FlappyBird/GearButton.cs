@@ -1,17 +1,20 @@
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 
 namespace FlappyBird;
 
 internal sealed class GearButton : Button
 {
-    private const float OuterRadius = 0.44f;
-    private const float OutlineWidth = 0.055f;
+    private const float HitAreaRatio = 0.94f;
+    private readonly Bitmap sprite = PixelAssets.Load("gear");
+    private readonly ImageAttributes highlight = new();
     private readonly Action<Graphics, Point> drawScene;
     private bool hovered;
 
     public GearButton(Action<Graphics, Point> drawScene)
     {
         this.drawScene = drawScene;
+        highlight.SetColorMatrix(new ColorMatrix { Matrix00 = 1.12f, Matrix11 = 1.12f, Matrix22 = 1.12f });
         SetStyle(ControlStyles.Opaque | ControlStyles.UserPaint
             | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
         UseVisualStyleBackColor = false;
@@ -28,7 +31,7 @@ internal sealed class GearButton : Button
             return;
         }
 
-        float diameter = size * (2 * OuterRadius + OutlineWidth);
+        float diameter = size * HitAreaRatio;
         using var clickable = new GraphicsPath();
         clickable.AddEllipse((Width - diameter) / 2, (Height - diameter) / 2, diameter, diameter);
         Region = new Region(clickable);
@@ -62,33 +65,28 @@ internal sealed class GearButton : Button
 
     protected override void OnPaint(PaintEventArgs e)
     {
-        float size = Math.Min(ClientSize.Width, ClientSize.Height);
+        int size = Math.Min(ClientSize.Width, ClientSize.Height);
         if (size <= 0)
         {
             return;
         }
 
         drawScene(e.Graphics, Location);
+        var destination = new Rectangle((ClientSize.Width - size) / 2, (ClientSize.Height - size) / 2, size, size);
+        e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
+        e.Graphics.PixelOffsetMode = PixelOffsetMode.Half;
+        e.Graphics.DrawImage(sprite, destination, 0, 0, sprite.Width, sprite.Height,
+            GraphicsUnit.Pixel, hovered || Focused ? highlight : null);
+    }
 
-        float centerX = ClientSize.Width / 2f;
-        float centerY = ClientSize.Height / 2f;
-        var points = new PointF[32];
-        for (int i = 0; i < points.Length; i++)
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
         {
-            double angle = 2 * Math.PI * i / points.Length;
-            float radius = size * (i % 4 is 1 or 2 ? OuterRadius : 0.32f);
-            points[i] = new PointF(centerX + radius * (float)Math.Cos(angle),
-                centerY + radius * (float)Math.Sin(angle));
+            sprite.Dispose();
+            highlight.Dispose();
         }
 
-        e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-        using var icon = new GraphicsPath(FillMode.Alternate);
-        icon.AddPolygon(points);
-        float hole = size * 0.27f;
-        icon.AddEllipse(centerX - hole / 2, centerY - hole / 2, hole, hole);
-        using var outline = new Pen(ArcadeRenderer.Ink, size * OutlineWidth) { LineJoin = LineJoin.Round };
-        using var fill = new SolidBrush(hovered || Focused ? ArcadeRenderer.Gold : ArcadeRenderer.Cream);
-        e.Graphics.DrawPath(outline, icon);
-        e.Graphics.FillPath(fill, icon);
+        base.Dispose(disposing);
     }
 }

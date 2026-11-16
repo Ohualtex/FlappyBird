@@ -10,6 +10,14 @@ internal sealed class ArcadeRenderer : Component
     internal static readonly Color Gold = Color.FromArgb(255, 201, 66);
 
     private readonly Bitmap landscape = CreateLandscape();
+    private readonly Bitmap birdIdle = PixelAssets.Load("bird-idle");
+    private readonly Bitmap birdFlap = PixelAssets.Load("bird-flap");
+    private readonly Bitmap pipeBody = PixelAssets.Load("pipe-body");
+    private readonly Bitmap pipeCap = PixelAssets.Load("pipe-cap");
+    private const int GroundPixelScale = 2;
+    private const int GroundTileWidth = 28;
+
+    private readonly Bitmap groundStrip = CreateGroundStrip();
     private readonly Font titleFont = new(SystemFonts.MessageBoxFont!.FontFamily, 30, FontStyle.Bold, GraphicsUnit.Pixel);
     private readonly Font scoreFont = new(SystemFonts.MessageBoxFont!.FontFamily, 38, FontStyle.Bold, GraphicsUnit.Pixel);
     private readonly Font labelFont = new(SystemFonts.MessageBoxFont!.FontFamily, 14, FontStyle.Bold, GraphicsUnit.Pixel);
@@ -18,19 +26,26 @@ internal sealed class ArcadeRenderer : Component
     public void Draw(Graphics graphics, Rectangle bounds, GameState game, bool running, int bestScore, string? scoreMessage)
     {
         graphics.SmoothingMode = SmoothingMode.AntiAlias;
-        var backgroundState = graphics.Save();
-        graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
-        graphics.PixelOffsetMode = PixelOffsetMode.Half;
-        graphics.DrawImage(landscape, new Rectangle(0, 0, bounds.Width, GameState.GroundY),
-            new Rectangle(Point.Empty, landscape.Size), GraphicsUnit.Pixel);
-        graphics.Restore(backgroundState);
-        foreach (GameState.Obstacle obstacle in game.Obstacles)
+        var worldState = graphics.Save();
+        try
         {
-            DrawPipePair(graphics, obstacle);
+            graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
+            graphics.PixelOffsetMode = PixelOffsetMode.Half;
+            PixelAssets.Draw(graphics, landscape, new Rectangle(0, 0, bounds.Width, GameState.GroundY));
+            foreach (GameState.Obstacle obstacle in game.Obstacles)
+            {
+                DrawPipePair(graphics, obstacle);
+            }
+
+            DrawBird(graphics, game);
+            DrawGround(graphics, bounds, game.DistanceTraveled);
+        }
+        finally
+        {
+            graphics.Restore(worldState);
         }
 
-        DrawBird(graphics, game);
-        DrawGround(graphics, bounds, game.DistanceTraveled);
+
         if (running)
         {
             DrawScore(graphics, game.Score, bestScore);
@@ -109,59 +124,35 @@ internal sealed class ArcadeRenderer : Component
     }
 
 
-    private static void DrawPipePair(Graphics graphics, GameState.Obstacle obstacle)
+    private void DrawPipePair(Graphics graphics, GameState.Obstacle obstacle)
     {
-        const int rimHeight = GameState.PipeRimHeight;
+        int x = obstacle.X;
+        int bodyX = x + GameState.PipeBodyInset;
+        int bodyWidth = GameState.PipeWidth - GameState.PipeBodyInset * 2;
         int gapBottom = obstacle.GapTop + GameState.GapHeight;
-        using var outline = new SolidBrush(Color.FromArgb(37, 51, 34));
-        using var body = new SolidBrush(Color.FromArgb(120, 189, 53));
-        using var light = new SolidBrush(Color.FromArgb(190, 226, 96));
-        using var shadow = new SolidBrush(Color.FromArgb(73, 133, 42));
-        using var rim = new SolidBrush(Color.FromArgb(147, 207, 62));
-
-        DrawPipe(0, obstacle.GapTop, obstacle.GapTop - rimHeight);
-        DrawPipe(gapBottom, GameState.GroundY - gapBottom, gapBottom);
-
-        void DrawPipe(int top, int height, int rimY)
-        {
-            int x = obstacle.X;
-            int width = GameState.PipeWidth;
-            int bodyX = x + GameState.PipeBodyInset;
-            int bodyWidth = width - GameState.PipeBodyInset * 2;
-            graphics.FillRectangle(outline, bodyX, top, bodyWidth, height);
-            graphics.FillRectangle(body, bodyX + 4, top, bodyWidth - 8, height);
-            graphics.FillRectangle(light, bodyX + 8, top, 8, height);
-            graphics.FillRectangle(shadow, bodyX + bodyWidth - 13, top, 9, height);
-
-            graphics.FillRectangle(outline, x, rimY, width, rimHeight);
-            graphics.FillRectangle(rim, x + 4, rimY + 4, width - 8, rimHeight - 8);
-            graphics.FillRectangle(light, x + 8, rimY + 4, 10, rimHeight - 8);
-            graphics.FillRectangle(shadow, x + width - 15, rimY + 4, 11, rimHeight - 8);
-            graphics.FillRectangle(light, x + 18, rimY + 4, width - 33, 3);
-        }
+        int rimHeight = GameState.PipeRimHeight;
+        PixelAssets.Draw(graphics, pipeBody, new Rectangle(bodyX, 0, bodyWidth, obstacle.GapTop));
+        PixelAssets.Draw(graphics, pipeBody,
+            new Rectangle(bodyX, gapBottom, bodyWidth, GameState.GroundY - gapBottom));
+        PixelAssets.Draw(graphics, pipeCap,
+            new Rectangle(x, obstacle.GapTop - rimHeight, GameState.PipeWidth, rimHeight));
+        PixelAssets.Draw(graphics, pipeCap, new Rectangle(x, gapBottom, GameState.PipeWidth, rimHeight));
     }
 
-
-    private static void DrawBird(Graphics graphics, GameState game)
+    private void DrawBird(Graphics graphics, GameState game)
     {
         const int center = GameState.BirdSize / 2;
+        const float pixelScale = 2.5f;
+        Bitmap frame = game.IsBirdWingRaised ? birdFlap : birdIdle;
+        int width = (int)Math.Round(frame.Width * pixelScale);
+        int height = (int)Math.Round(frame.Height * pixelScale);
         float angle = (float)Math.Clamp(game.BirdVerticalSpeed * 3, -24, 30);
         GraphicsState transform = graphics.Save();
         try
         {
             graphics.TranslateTransform(GameState.BirdX + center, (float)game.BirdY + center);
             graphics.RotateTransform(angle);
-
-            using var outline = new SolidBrush(Ink);
-            using var body = new SolidBrush(Gold);
-            using var wing = new SolidBrush(Color.FromArgb(238, 143, 39));
-            using var beak = new SolidBrush(Color.FromArgb(245, 108, 56));
-            graphics.FillEllipse(outline, -14, -13, 26, 26);
-            graphics.FillEllipse(body, -12, -11, 22, 22);
-            graphics.FillEllipse(wing, -11, game.IsBirdWingRaised ? -7 : -1, 12, 8);
-            graphics.FillPolygon(beak, [new Point(6, -1), new Point(13, 2), new Point(8, 6)]);
-            graphics.FillEllipse(Brushes.White, 1, -8, 8, 8);
-            graphics.FillEllipse(outline, 5, -6, 3, 4);
+            PixelAssets.Draw(graphics, frame, new Rectangle(-width / 2, -height / 2, width, height));
         }
         finally
         {
@@ -169,28 +160,27 @@ internal sealed class ArcadeRenderer : Component
         }
     }
 
-    private static void DrawGround(Graphics graphics, Rectangle bounds, long distanceTraveled)
+    private static Bitmap CreateGroundStrip()
     {
-        const int tileWidth = 28;
-        int top = GameState.GroundY;
-        using var sand = new SolidBrush(Color.FromArgb(229, 206, 148));
-        using var edge = new SolidBrush(Ink);
-        using var grass = new SolidBrush(Color.FromArgb(169, 207, 69));
-        using var grassShadow = new SolidBrush(Color.FromArgb(104, 140, 57));
-        using var stripe = new SolidBrush(Color.FromArgb(201, 225, 97));
-
-        graphics.FillRectangle(sand, 0, top, bounds.Width, bounds.Height - top);
-        graphics.FillRectangle(edge, 0, top, bounds.Width, 4);
-        graphics.FillRectangle(grass, 0, top + 4, bounds.Width, 14);
-        graphics.FillRectangle(grassShadow, 0, top + 18, bounds.Width, 4);
-
-        int offset = (int)(distanceTraveled % tileWidth);
-        for (int x = -offset; x < bounds.Width; x += tileWidth)
+        using var tile = PixelAssets.Load("ground-tile");
+        int copies = (GameState.Width + GroundTileWidth - 1) / GroundTileWidth + 1;
+        var strip = new Bitmap(tile.Width * copies, tile.Height);
+        using var graphics = Graphics.FromImage(strip);
+        for (int x = 0; x < strip.Width; x += tile.Width)
         {
-            graphics.FillRectangle(stripe, x + 16, top + 6, 10, 4);
-            graphics.FillRectangle(stripe, x + 12, top + 10, 10, 4);
-            graphics.FillRectangle(stripe, x + 8, top + 14, 10, 4);
+            graphics.DrawImageUnscaled(tile, x, 0);
         }
+
+        return strip;
+    }
+
+    private void DrawGround(Graphics graphics, Rectangle bounds, long distanceTraveled)
+    {
+        int top = GameState.GroundY;
+        int offset = (int)(distanceTraveled % GroundTileWidth);
+        // Scale a single strip so fractional window sizes cannot create gaps between tiles.
+        PixelAssets.Draw(graphics, groundStrip,
+            new Rectangle(-offset, top, groundStrip.Width * GroundPixelScale, bounds.Height - top));
     }
 
     private void DrawScore(Graphics graphics, int score, int bestScore)
@@ -253,6 +243,11 @@ internal sealed class ArcadeRenderer : Component
         if (disposing)
         {
             landscape.Dispose();
+            birdIdle.Dispose();
+            birdFlap.Dispose();
+            pipeBody.Dispose();
+            pipeCap.Dispose();
+            groundStrip.Dispose();
             titleFont.Dispose();
             scoreFont.Dispose();
             labelFont.Dispose();
