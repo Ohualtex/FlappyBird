@@ -21,8 +21,8 @@ dotnet run --project FlappyBird/FlappyBird.csproj
 ## Kontroller ve oyun kuralları
 
 - **Boşluk / Sol tık:** Oyunu başlatır veya kuşu yukarı iter. Game Over ekranında yeni turu başlatır. Fareyle oynamak için oyun alanına tıklayın.
-- İki boru çifti sağdan sola ilerler. Açıklık yüksekliği ve çiftler arasındaki mesafe her turda değişir. Ekrandan çıkan çift sağda yeni bir konumda belirir.
-- **Esc / Duraklatma düğmesi:** Aktif turu duraklatır veya kaldığı yerden sürdürür. Duraklatma menüsündeki **Yeni oyun** seçeneği turu ve skoru sıfırlar.
+- İki boru çifti sağdan sola ilerler. Boru açıklığı 120 oyun pikselidir. Açıklığın dikey konumu ve boru çiftleri arasındaki yatay mesafe rastgele belirlenir. Ekrandan çıkan çift sağda yeni bir konumda belirir.
+- **Esc / Duraklatma düğmesi:** Aktif turu duraklatır veya kaldığı yerden sürdürür. Sol üstteki turuncu düğme fareyle aynı işlevi görür. Menüdeki **Devam et** turu sürdürür, **Yeni oyun** ise skoru sıfırlayıp başlangıç ekranına döner.
 
 Pencere oyun alanının 3:4 oranını koruyarak kenardan veya köşeden yeniden boyutlandırılabilir. Büyüt düğmesi pencereyi monitörün kullanılabilir alanına sığan en büyük boyuta getirir. Düğmeye tekrar basarak önceki boyuta dönebilirsiniz. Minimum oyun alanı 480 × 640 pikseldir.
 
@@ -30,16 +30,22 @@ Pencere oyun alanının 3:4 oranını koruyarak kenardan veya köşeden yeniden 
 
 `GameState` hareket, çarpışma, engeller ve skoru yönetir. Form klavye olaylarını alır, zamanlayıcıyla oyun durumunu günceller ve ekrana çizer. Çarpışma sınır dikdörtgenleriyle hesaplanır. Tur skoru her yeni oyunda sıfırlanır. Rekor, tur sonunda yükselirse Windows kullanıcı profilindeki `%LOCALAPPDATA%/FlappyBird/high-score.txt` dosyasına kaydedilir. Kayıt sorunu varsa oyun devam eder ve arayüzde durum gösterilir.
 
+Üst ortadaki sayaç, geçilen boru çiftlerini siyah konturlu beyaz rakamlarla gösterir. Arka plan, kuş, borular ve zemin piksel sanatına uygun PNG varlıklarıyla çizilir.
+
 ## Ekran görüntüleri
 
 **Başlangıç**
 
-![Başlangıç ekranı ve klavye komutu](docs/screenshots/start.png)
+![Tıklama ve boşluk tuşu ipuçlarıyla başlangıç ekranı](docs/screenshots/start.png)
 
 **Oyun sırasında**
 
-![Kuş ve iki boru çifti](docs/screenshots/gameplay.png)
+![Boru çiftlerine yaklaşan kuş, skor sayacı ve duraklatma düğmesi](docs/screenshots/gameplay.png)
+
+**Duraklatma menüsü**
+
+![Devam et ve Yeni oyun seçenekleri](docs/screenshots/pause.png)
 
 **Çarpışma sonrası**
 
-![Game Over bildirimi](docs/screenshots/game-over.png)
+![Tur skoru, rekor ve yeniden deneme ipucu](docs/screenshots/game-over.png)
