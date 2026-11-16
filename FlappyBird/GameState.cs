@@ -12,7 +12,6 @@ internal sealed class GameState
     private const int MaximumPipeSpacing = 295;
     private const int MinimumGapTop = 125;
     private const int MaximumGapTop = 305;
-    private const int MaximumGapChange = 82;
     private const int ScrollSpeed = 4;
 
     private const int WingFlapDuration = 8;
@@ -106,9 +105,7 @@ internal sealed class GameState
     private static void PlaceAfter(Obstacle obstacle, Obstacle previous)
     {
         int spacing = Random.Shared.Next(MinimumPipeSpacing, MaximumPipeSpacing + 1);
-        int lowestGap = Math.Max(MinimumGapTop, previous.GapTop - MaximumGapChange);
-        int highestGap = Math.Min(MaximumGapTop, previous.GapTop + MaximumGapChange);
-        int gapTop = Random.Shared.Next(lowestGap, highestGap + 1);
+        int gapTop = Random.Shared.Next(MinimumGapTop, MaximumGapTop + 1);
         Place(obstacle, previous.X + spacing, gapTop);
     }
 
