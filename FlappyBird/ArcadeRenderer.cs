@@ -111,28 +111,34 @@ internal sealed class ArcadeRenderer : Component
 
     private static void DrawPipePair(Graphics graphics, GameState.Obstacle obstacle)
     {
+        const int rimHeight = 22;
         int gapBottom = obstacle.GapTop + GameState.GapHeight;
-        using var outline = new SolidBrush(Ink);
-        using var light = new SolidBrush(Color.FromArgb(160, 223, 92));
-        using var dark = new SolidBrush(Color.FromArgb(41, 114, 78));
-        DrawPipe(0, obstacle.GapTop, obstacle.GapTop - 19);
+        using var outline = new SolidBrush(Color.FromArgb(37, 51, 34));
+        using var body = new SolidBrush(Color.FromArgb(120, 189, 53));
+        using var light = new SolidBrush(Color.FromArgb(190, 226, 96));
+        using var shadow = new SolidBrush(Color.FromArgb(73, 133, 42));
+        using var rim = new SolidBrush(Color.FromArgb(147, 207, 62));
+
+        DrawPipe(0, obstacle.GapTop, obstacle.GapTop - rimHeight);
         DrawPipe(gapBottom, GameState.GroundY - gapBottom, gapBottom);
 
         void DrawPipe(int top, int height, int rimY)
         {
             int x = obstacle.X;
             int width = GameState.PipeWidth;
-            var body = new Rectangle(x, top, width, height);
-            using var fill = new LinearGradientBrush(body, Color.FromArgb(142, 213, 78),
-                Color.FromArgb(49, 136, 76), LinearGradientMode.Horizontal);
-            graphics.FillRectangle(outline, body);
-            graphics.FillRectangle(fill, x + 3, top, width - 6, height);
-            graphics.FillRectangle(light, x + 8, top, 6, height);
-            graphics.FillRectangle(outline, x, rimY, width, 19);
-            graphics.FillRectangle(dark, x + 3, rimY + 3, width - 6, 13);
-            graphics.FillRectangle(light, x + 5, rimY + 4, width - 10, 3);
+            graphics.FillRectangle(outline, x, top, width, height);
+            graphics.FillRectangle(body, x + 4, top, width - 8, height);
+            graphics.FillRectangle(light, x + 9, top, 8, height);
+            graphics.FillRectangle(shadow, x + width - 14, top, 10, height);
+
+            graphics.FillRectangle(outline, x, rimY, width, rimHeight);
+            graphics.FillRectangle(rim, x + 4, rimY + 4, width - 8, rimHeight - 8);
+            graphics.FillRectangle(light, x + 8, rimY + 4, 10, rimHeight - 8);
+            graphics.FillRectangle(shadow, x + width - 15, rimY + 4, 11, rimHeight - 8);
+            graphics.FillRectangle(light, x + 18, rimY + 4, width - 33, 3);
         }
     }
+
 
     private static void DrawBird(Graphics graphics, GameState game)
     {
