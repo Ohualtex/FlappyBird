@@ -9,6 +9,7 @@ internal sealed class ArcadeRenderer : Component
     internal static readonly Color Cream = Color.FromArgb(255, 248, 216);
     internal static readonly Color Gold = Color.FromArgb(255, 201, 66);
 
+    private readonly Bitmap landscape = CreateLandscape();
     private readonly Font titleFont = new(SystemFonts.MessageBoxFont!.FontFamily, 30, FontStyle.Bold, GraphicsUnit.Pixel);
     private readonly Font scoreFont = new(SystemFonts.MessageBoxFont!.FontFamily, 38, FontStyle.Bold, GraphicsUnit.Pixel);
     private readonly Font labelFont = new(SystemFonts.MessageBoxFont!.FontFamily, 14, FontStyle.Bold, GraphicsUnit.Pixel);
@@ -17,7 +18,12 @@ internal sealed class ArcadeRenderer : Component
     public void Draw(Graphics graphics, Rectangle bounds, GameState game, bool running, int bestScore, string? scoreMessage)
     {
         graphics.SmoothingMode = SmoothingMode.AntiAlias;
-        DrawSky(graphics, bounds.Width);
+        var backgroundState = graphics.Save();
+        graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
+        graphics.PixelOffsetMode = PixelOffsetMode.Half;
+        graphics.DrawImage(landscape, new Rectangle(0, 0, bounds.Width, GameState.GroundY),
+            new Rectangle(Point.Empty, landscape.Size), GraphicsUnit.Pixel);
+        graphics.Restore(backgroundState);
         foreach (GameState.Obstacle obstacle in game.Obstacles)
         {
             DrawPipePair(graphics, obstacle);
@@ -43,35 +49,65 @@ internal sealed class ArcadeRenderer : Component
         }
     }
 
-    private static void DrawSky(Graphics graphics, int width)
+    private static Bitmap CreateLandscape()
     {
-        var area = new Rectangle(0, 0, width, GameState.GroundY);
-        using var sky = new LinearGradientBrush(area, Color.FromArgb(58, 152, 210),
-            Color.FromArgb(194, 239, 226), LinearGradientMode.Vertical);
-        graphics.FillRectangle(sky, area);
+        var bitmap = new Bitmap(GameState.Width, GameState.GroundY);
+        using var graphics = Graphics.FromImage(bitmap);
+        graphics.Clear(Color.FromArgb(109, 198, 208));
 
-        using var sun = new SolidBrush(Color.FromArgb(225, 255, 239, 168));
-        graphics.FillEllipse(sun, 335, 93, 68, 68);
+        int top = GameState.GroundY - 122;
+        using var cloud = new SolidBrush(Color.FromArgb(236, 246, 223));
+        using var cloudShade = new SolidBrush(Color.FromArgb(215, 235, 218));
+        (int X, int Y, int Width)[] clouds =
+        [
+            (-28, 12, 98), (64, 27, 102), (140, 3, 112),
+            (251, 23, 90), (319, 0, 120), (419, 20, 106)
+        ];
+        foreach (var (x, y, width) in clouds)
+        {
+            graphics.FillRectangle(cloud, x, top + y + 18, width, 65);
+            graphics.FillRectangle(cloud, x + 12, top + y + 8, width - 24, 52);
+            graphics.FillRectangle(cloud, x + 28, top + y, width - 56, 35);
+            graphics.FillRectangle(cloudShade, x, top + y + 58, width, 12);
+        }
 
-        using var cloud = new SolidBrush(Color.FromArgb(200, 247, 251, 239));
-        DrawCloud(graphics, cloud, 38, 139);
-        DrawCloud(graphics, cloud, 252, 257);
-        DrawCloud(graphics, cloud, 109, 404);
+        int skylineBottom = GameState.GroundY - 16;
+        using var wall = new SolidBrush(Color.FromArgb(159, 205, 196));
+        using var roof = new SolidBrush(Color.FromArgb(192, 229, 213));
+        using var window = new SolidBrush(Color.FromArgb(220, 235, 211));
+        (int X, int Width, int Height)[] buildings =
+        [
+            (0, 29, 49), (35, 31, 66), (72, 24, 42), (102, 43, 73),
+            (153, 25, 53), (183, 24, 40), (213, 43, 70), (262, 30, 51),
+            (297, 28, 66), (332, 37, 44), (375, 23, 61), (405, 36, 49), (446, 34, 64)
+        ];
+        foreach (var (x, width, height) in buildings)
+        {
+            int buildingTop = skylineBottom - height;
+            graphics.FillRectangle(wall, x, buildingTop, width, height);
+            graphics.FillRectangle(roof, x + 4, buildingTop + 4, width - 8, 4);
+            for (int row = buildingTop + 12; row < skylineBottom - 7; row += 12)
+            {
+                for (int column = x + 6; column < x + width - 5; column += 10)
+                {
+                    graphics.FillRectangle(window, column, row, 4, 6);
+                }
+            }
+        }
 
-        using var farHill = new SolidBrush(Color.FromArgb(117, 193, 169));
-        using var nearHill = new SolidBrush(Color.FromArgb(80, 157, 133));
-        graphics.FillEllipse(farHill, -90, 486, 335, 172);
-        graphics.FillEllipse(farHill, 171, 491, 435, 170);
-        graphics.FillEllipse(nearHill, -62, 535, 390, 127);
-        graphics.FillEllipse(nearHill, 246, 524, 320, 130);
+        using var shrubs = new SolidBrush(Color.FromArgb(132, 190, 83));
+        using var leafLight = new SolidBrush(Color.FromArgb(166, 208, 102));
+        graphics.FillRectangle(shrubs, 0, skylineBottom - 2, GameState.Width, 18);
+        for (int x = -12; x < GameState.Width; x += 35)
+        {
+            graphics.FillRectangle(shrubs, x, skylineBottom - 9, 32, 12);
+            graphics.FillRectangle(shrubs, x + 6, skylineBottom - 15, 18, 8);
+            graphics.FillRectangle(leafLight, x + 5, skylineBottom - 8, 22, 3);
+        }
+
+        return bitmap;
     }
 
-    private static void DrawCloud(Graphics graphics, Brush brush, int x, int y)
-    {
-        graphics.FillEllipse(brush, x, y + 13, 72, 22);
-        graphics.FillEllipse(brush, x + 13, y + 3, 27, 25);
-        graphics.FillEllipse(brush, x + 30, y, 27, 28);
-    }
 
     private static void DrawPipePair(Graphics graphics, GameState.Obstacle obstacle)
     {
@@ -208,6 +244,7 @@ internal sealed class ArcadeRenderer : Component
     {
         if (disposing)
         {
+            landscape.Dispose();
             titleFont.Dispose();
             scoreFont.Dispose();
             labelFont.Dispose();
