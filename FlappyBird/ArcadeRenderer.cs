@@ -24,7 +24,7 @@ internal sealed class ArcadeRenderer : Component
         }
 
         DrawBird(graphics, game);
-        DrawGround(graphics, bounds);
+        DrawGround(graphics, bounds, game.DistanceTraveled);
         if (running)
         {
             DrawScore(graphics, game.Score, bestScore);
@@ -125,33 +125,28 @@ internal sealed class ArcadeRenderer : Component
         }
     }
 
-    private static void DrawGround(Graphics graphics, Rectangle bounds)
+    private static void DrawGround(Graphics graphics, Rectangle bounds, long distanceTraveled)
     {
+        const int tileWidth = 28;
         int top = GameState.GroundY;
-        var ground = new Rectangle(0, top, bounds.Width, bounds.Height - top);
-        using var soil = new LinearGradientBrush(ground, Color.FromArgb(192, 127, 69),
-            Color.FromArgb(133, 77, 50), LinearGradientMode.Vertical);
-        using var shade = new SolidBrush(Color.FromArgb(127, 74, 47));
-        using var gravel = new SolidBrush(Color.FromArgb(229, 163, 99));
-        using var grass = new SolidBrush(Color.FromArgb(112, 166, 66));
-        using var grassLight = new SolidBrush(Color.FromArgb(179, 213, 97));
+        using var sand = new SolidBrush(Color.FromArgb(229, 206, 148));
+        using var edge = new SolidBrush(Ink);
+        using var grass = new SolidBrush(Color.FromArgb(169, 207, 69));
+        using var grassShadow = new SolidBrush(Color.FromArgb(104, 140, 57));
+        using var stripe = new SolidBrush(Color.FromArgb(201, 225, 97));
 
-        graphics.FillRectangle(soil, ground);
-        for (int x = 0; x < bounds.Width; x += 31)
+        graphics.FillRectangle(sand, 0, top, bounds.Width, bounds.Height - top);
+        graphics.FillRectangle(edge, 0, top, bounds.Width, 4);
+        graphics.FillRectangle(grass, 0, top + 4, bounds.Width, 14);
+        graphics.FillRectangle(grassShadow, 0, top + 18, bounds.Width, 4);
+
+        int offset = (int)(distanceTraveled % tileWidth);
+        for (int x = -offset; x < bounds.Width; x += tileWidth)
         {
-            graphics.FillEllipse(shade, x + 4, top + 22, 8, 4);
-            graphics.FillEllipse(gravel, x + 17, top + 35, 5, 3);
-            graphics.FillEllipse(gravel, x + 25, top + 18, 3, 3);
-            graphics.FillEllipse(shade, x + 24, top + 42, 4, 2);
+            graphics.FillRectangle(stripe, x + 16, top + 6, 10, 4);
+            graphics.FillRectangle(stripe, x + 12, top + 10, 10, 4);
+            graphics.FillRectangle(stripe, x + 8, top + 14, 10, 4);
         }
-
-        graphics.FillRectangle(grass, 0, top, bounds.Width, 11);
-        for (int x = 0; x < bounds.Width; x += 18)
-        {
-            graphics.FillEllipse(grass, x, top + 7, 14, 6);
-        }
-
-        graphics.FillRectangle(grassLight, 0, top, bounds.Width, 3);
     }
 
     private void DrawScore(Graphics graphics, int score, int bestScore)

@@ -9,6 +9,7 @@ internal sealed class GameState
     public const int PipeWidth = 72;
     public const int GapHeight = 168;
     private const int PipeSpacing = 275;
+    private const int ScrollSpeed = 4;
 
     private const int WingFlapDuration = 8;
 
@@ -18,6 +19,7 @@ internal sealed class GameState
     public double BirdVerticalSpeed { get; private set; }
     public bool IsBirdWingRaised => wingFlapTicks > 0;
     public int Score { get; private set; }
+    public long DistanceTraveled { get; private set; }
     public bool IsGameOver { get; private set; }
     public IReadOnlyList<Obstacle> Obstacles { get; } = [new(), new()];
 
@@ -29,6 +31,7 @@ internal sealed class GameState
         wingFlapTicks = 0;
         BirdVerticalSpeed = 0;
         Score = 0;
+        DistanceTraveled = 0;
         IsGameOver = false;
         Place(Obstacles[0], Width + 35, 185);
         Place(Obstacles[1], Width + 35 + PipeSpacing, 255);
@@ -59,9 +62,11 @@ internal sealed class GameState
             BirdVerticalSpeed = 0;
         }
 
+        DistanceTraveled += ScrollSpeed;
+
         foreach (Obstacle obstacle in Obstacles)
         {
-            obstacle.X -= 4;
+            obstacle.X -= ScrollSpeed;
         }
 
         IsGameOver = BirdY + BirdSize >= GroundY || Obstacles.Any(HitsBird);
