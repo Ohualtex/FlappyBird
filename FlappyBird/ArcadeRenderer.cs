@@ -186,20 +186,13 @@ internal sealed class ArcadeRenderer : Component
 
     private static void DrawScore(Graphics graphics, int score)
     {
-        using var digits = new GraphicsPath();
-        using var format = StringFormat.GenericTypographic;
-        digits.AddString(score.ToString(CultureInfo.InvariantCulture), SystemFonts.MessageBoxFont!.FontFamily,
-            (int)FontStyle.Bold, 38, PointF.Empty, format);
-
-        using var position = new Matrix();
-        position.Scale(0.82f, 1);
-        digits.Transform(position);
+        using var digits = ScoreDigits.Create(score.ToString(CultureInfo.InvariantCulture));
         RectangleF digitBounds = digits.GetBounds();
-        position.Reset();
+        using var position = new Matrix();
         position.Translate((GameState.Width - digitBounds.Width) / 2 - digitBounds.X, 26 - digitBounds.Y);
         digits.Transform(position);
 
-        using var outline = new Pen(Color.FromArgb(19, 24, 26), 4) { LineJoin = LineJoin.Round };
+        using var outline = new Pen(Color.FromArgb(19, 24, 26), 3) { LineJoin = LineJoin.Miter };
         graphics.DrawPath(outline, digits);
         graphics.FillPath(Brushes.White, digits);
     }
