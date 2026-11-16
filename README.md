@@ -1,6 +1,6 @@
 # Flappy Bird
 
-Boşluk tuşuyla zıplayıp boruların arasından geçtiğiniz bir Windows Forms oyunu. Her geçilen boru çifti bir puan kazandırır. Boruya veya zemine çarpınca oyun durur.
+Boşluk tuşuyla veya oyun alanına sol tıklayarak zıplayıp boruların arasından geçtiğiniz bir Windows Forms oyunu. Her geçilen boru çifti bir puan kazandırır. Boruya veya zemine çarpınca oyun durur.
 
 ## Teknolojiler
 
@@ -20,9 +20,9 @@ dotnet run --project FlappyBird/FlappyBird.csproj
 
 ## Kontroller ve oyun kuralları
 
-- **Boşluk:** Oyunu başlatır veya kuşu yukarı iter. Her zıplama için tuşa yeniden basın. Game Over ekranında Boşluk yeni turu başlatır.
+- **Boşluk / Sol tık:** Oyunu başlatır veya kuşu yukarı iter. Game Over ekranında yeni turu başlatır. Fareyle oynamak için oyun alanına tıklayın.
 - İki boru çifti sağdan sola ilerler. Ekrandan çıkan çift sağ tarafta yeni bir açıklıkla tekrar belirir.
-- **Çark → Yeni oyun:** Sol üst köşedeki oyun menüsünden oyun durumunu ve skoru sıfırlar. Yeni turu Boşluk tuşuyla başlatabilirsiniz.
+- **Çark → Yeni oyun:** Sol üst köşedeki oyun menüsünden oyun durumunu ve skoru sıfırlar. Yeni turu Boşluk tuşuyla veya oyun alanına sol tıklayarak başlatabilirsiniz.
 
 Pencere oyun alanının 3:4 oranını koruyarak kenardan veya köşeden yeniden boyutlandırılabilir. Büyüt düğmesi pencereyi monitörün kullanılabilir alanına sığan en büyük boyuta getirir. Düğmeye tekrar basarak önceki boyuta dönebilirsiniz. Minimum oyun alanı 480 × 640 pikseldir.
 
