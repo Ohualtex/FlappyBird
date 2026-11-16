@@ -186,7 +186,7 @@ internal sealed class ArcadeRenderer : Component
 
         string title = gameOver ? "Game Over" : "Flappy Bird";
         string details = gameOver ? $"Skor {score}     Rekor {bestScore}" : $"Rekor {bestScore}";
-        string action = gameOver ? "Yeniden denemek için Boşluk" : "Başlamak için Boşluk";
+        string action = gameOver ? "Yeniden dene: Tıkla / Boşluk" : "Başla: Tıkla / Boşluk";
         DrawCentered(graphics, title, titleFont, Ink, new Rectangle(55, 191, 370, 42));
         DrawCentered(graphics, details, labelFont, Ink, new Rectangle(55, 238, 370, 23));
         graphics.FillRectangle(border, 107, 279, 266, 42);

@@ -140,6 +140,23 @@ public partial class Form1 : Form
             return true;
         }
 
+        FlapOrRestart();
+        return true;
+    }
+
+    protected override void OnMouseDown(MouseEventArgs e)
+    {
+        base.OnMouseDown(e);
+        if (e.Button == MouseButtons.Left
+            && GetGameViewport().Contains(e.X, e.Y)
+            && menuButton.ContextMenuStrip?.Visible != true)
+        {
+            FlapOrRestart();
+        }
+    }
+
+    private void FlapOrRestart()
+    {
         if (game.IsGameOver)
         {
             ResetGame();
@@ -148,7 +165,6 @@ public partial class Form1 : Form
         game.Flap();
         gameTimer.Start();
         Invalidate(invalidateChildren: true);
-        return true;
     }
 
     private void AdvanceGame(object? sender, EventArgs e)
