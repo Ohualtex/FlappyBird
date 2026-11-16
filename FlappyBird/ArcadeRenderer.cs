@@ -142,9 +142,10 @@ internal sealed class ArcadeRenderer : Component
     private void DrawBird(Graphics graphics, GameState game)
     {
         const int center = GameState.BirdSize / 2;
-        const int width = 26;
+        const int pixelScale = 2;
         Bitmap frame = game.IsBirdWingRaised ? birdFlap : birdIdle;
-        int height = (int)Math.Round((float)width * frame.Height / frame.Width);
+        int width = frame.Width * pixelScale;
+        int height = frame.Height * pixelScale;
         float angle = (float)Math.Clamp(game.BirdVerticalSpeed * 3, -24, 30);
         GraphicsState transform = graphics.Save();
         try
