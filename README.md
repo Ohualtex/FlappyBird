@@ -20,7 +20,8 @@ dotnet run --project FlappyBird/FlappyBird.csproj
 
 ## Kontroller ve oyun kuralları
 
-- **Boşluk / Sol tık:** Oyunu başlatır veya kuşu yukarı iter. Game Over ekranında yeni turu başlatır. Fareyle oynamak için oyun alanına tıklayın.
+- **Boşluk / Sol tık:** Oyunu başlatır veya kuşu yukarı iter. Fareyle oynamak için oyun alanına tıklayın.
+- **Tekrar oyna:** Game Over ekranı tur skorunu ve rekoru gösterir. Yeni tur için turuncu düğmeye veya oyun alanına tıklayın ya da Boşluk tuşuna basın.
 - İki boru çifti sağdan sola ilerler. Boru açıklığı 120 oyun pikselidir. Açıklığın dikey konumu ve boru çiftleri arasındaki yatay mesafe rastgele belirlenir. Ekrandan çıkan çift sağda yeni bir konumda belirir.
 - **Esc / Duraklatma düğmesi:** Aktif turu duraklatır veya kaldığı yerden sürdürür. Sol üstteki turuncu düğme fareyle aynı işlevi görür. Menüdeki **Devam et** turu sürdürür, **Yeni oyun** ise skoru sıfırlayıp başlangıç ekranına döner.
 
@@ -48,4 +49,4 @@ Pencere oyun alanının 3:4 oranını koruyarak kenardan veya köşeden yeniden 
 
 **Çarpışma sonrası**
 
-![Tur skoru, rekor ve yeniden deneme ipucu](docs/screenshots/game-over.png)
+![Game Over başlığı, skor ve rekor paneli ile turuncu Tekrar oyna düğmesi](docs/screenshots/game-over.png)
