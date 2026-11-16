@@ -23,7 +23,7 @@ internal sealed class ArcadeRenderer : Component
     private readonly Font labelFont = new(SystemFonts.MessageBoxFont!.FontFamily, 14, FontStyle.Bold, GraphicsUnit.Pixel);
     private readonly Font hintFont = new(SystemFonts.MessageBoxFont!.FontFamily, 14, FontStyle.Regular, GraphicsUnit.Pixel);
 
-    public void Draw(Graphics graphics, Rectangle bounds, GameState game, bool running, int bestScore, string? scoreMessage)
+    public void Draw(Graphics graphics, Rectangle bounds, GameState game, bool running, bool paused, int bestScore, string? scoreMessage)
     {
         graphics.SmoothingMode = SmoothingMode.AntiAlias;
         var worldState = graphics.Save();
@@ -51,7 +51,13 @@ internal sealed class ArcadeRenderer : Component
             ScoreDigits.Draw(graphics, game.Score.ToString(CultureInfo.InvariantCulture));
         }
 
-        if (!running)
+        if (paused)
+        {
+            using var dim = new SolidBrush(Color.FromArgb(165, Ink));
+            graphics.FillRectangle(dim, bounds);
+            DrawCentered(graphics, "DURAKLATILDI", titleFont, Cream, new Rectangle(20, 210, 440, 50));
+        }
+        else if (!running)
         {
             DrawMessage(graphics, game.IsGameOver, game.Score, bestScore);
         }

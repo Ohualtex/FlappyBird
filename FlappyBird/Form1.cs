@@ -6,12 +6,17 @@ namespace FlappyBird;
 public partial class Form1 : Form
 {
     private const int GameHeight = 640;
-    private static readonly Rectangle MenuButtonBounds = new(16, 16, 44, 44);
+    private static readonly Rectangle PauseButtonBounds = new(16, 16, 44, 44);
+    private static readonly Rectangle ResumeButtonBounds = new(120, 278, 240, 44);
+    private static readonly Rectangle RestartButtonBounds = new(120, 334, 240, 44);
 
     private readonly GameState game = new();
     private readonly ArcadeRenderer renderer = new();
     private readonly System.Windows.Forms.Timer gameTimer;
-    private readonly Button menuButton;
+    private readonly PauseButton pauseButton;
+    private readonly Button resumeButton;
+    private readonly Button restartButton;
+    private bool paused;
     private Rectangle? restoreWindowBounds;
 
     private readonly HighScoreStore highScoreStore;
@@ -51,27 +56,18 @@ public partial class Form1 : Form
         };
         gameTimer.Tick += AdvanceGame;
 
-        var gameMenu = new ContextMenuStrip(components)
+        pauseButton = new PauseButton(DrawScene)
         {
-            BackColor = ArcadeRenderer.Ink,
-            ForeColor = ArcadeRenderer.Cream,
-            ShowImageMargin = false,
-            Renderer = new ToolStripProfessionalRenderer(new GameMenuColors())
+            AccessibleName = "Duraklat",
+            Visible = false
         };
-        gameMenu.Items.Add(new ToolStripMenuItem("Yeni oyun", null, (_, _) => ResetGame())
-        {
-            ForeColor = ArcadeRenderer.Cream
-        });
+        pauseButton.Click += (_, _) => TogglePause();
+        resumeButton = CreatePauseAction("Devam et", ArcadeRenderer.Gold);
+        resumeButton.Click += (_, _) => TogglePause();
+        restartButton = CreatePauseAction("Yeni oyun", ArcadeRenderer.Cream);
+        restartButton.Click += (_, _) => ResetGame();
+        Controls.AddRange([pauseButton, resumeButton, restartButton]);
 
-        menuButton = new GearButton(DrawScene)
-        {
-            AccessibleName = "Oyun menüsü",
-            Bounds = MenuButtonBounds,
-            TabStop = true
-        };
-        menuButton.Click += (_, _) => gameMenu.Show(menuButton, new Point(0, menuButton.Height + 4));
-        menuButton.ContextMenuStrip = gameMenu;
-        Controls.Add(menuButton);
         ClientSizeChanged += (_, _) => LayoutGame();
         LayoutGame();
     }
@@ -128,19 +124,26 @@ public partial class Form1 : Form
 
     protected override bool ProcessCmdKey(ref Message message, Keys keyData)
     {
-        if ((keyData & Keys.KeyCode) != Keys.Space)
+        Keys key = keyData & Keys.KeyCode;
+        if (key is not (Keys.Space or Keys.Escape))
         {
             return base.ProcessCmdKey(ref message, keyData);
         }
 
         // Windows sets bit 30 when the key was already down before this message.
         const long previousKeyState = 1L << 30;
-        if ((message.LParam.ToInt64() & previousKeyState) != 0)
+        if ((message.LParam.ToInt64() & previousKeyState) == 0)
         {
-            return true;
+            if (key == Keys.Escape)
+            {
+                TogglePause();
+            }
+            else
+            {
+                FlapOrRestart();
+            }
         }
 
-        FlapOrRestart();
         return true;
     }
 
@@ -148,15 +151,64 @@ public partial class Form1 : Form
     {
         base.OnMouseDown(e);
         if (e.Button == MouseButtons.Left
-            && GetGameViewport().Contains(e.X, e.Y)
-            && menuButton.ContextMenuStrip?.Visible != true)
+            && GetGameViewport().Contains(e.X, e.Y))
         {
             FlapOrRestart();
         }
     }
 
+    private static Button CreatePauseAction(string text, Color background)
+    {
+        var button = new Button
+        {
+            Text = text,
+            Visible = false,
+            BackColor = background,
+            ForeColor = ArcadeRenderer.Ink,
+            FlatStyle = FlatStyle.Flat,
+            UseVisualStyleBackColor = false
+        };
+        button.FlatAppearance.BorderColor = ArcadeRenderer.Ink;
+        return button;
+    }
+
+    private void TogglePause()
+    {
+        if (!paused && !gameTimer.Enabled)
+        {
+            return;
+        }
+
+        paused = !paused;
+        gameTimer.Enabled = !paused;
+        UpdatePauseControls();
+        if (paused)
+        {
+            resumeButton.Select();
+        }
+        else
+        {
+            pauseButton.Select();
+        }
+    }
+
+    private void UpdatePauseControls()
+    {
+        pauseButton.ShowPlayIcon(paused);
+        pauseButton.Visible = paused || gameTimer.Enabled;
+        resumeButton.Visible = paused;
+        restartButton.Visible = paused;
+        Invalidate(invalidateChildren: true);
+    }
+
+
     private void FlapOrRestart()
     {
+        if (paused)
+        {
+            return;
+        }
+
         if (game.IsGameOver)
         {
             ResetGame();
@@ -164,16 +216,23 @@ public partial class Form1 : Form
 
         game.Flap();
         gameTimer.Start();
-        Invalidate(invalidateChildren: true);
+        UpdatePauseControls();
     }
 
     private void AdvanceGame(object? sender, EventArgs e)
     {
+        if (paused)
+        {
+            return;
+        }
+
         game.Step();
         if (game.IsGameOver)
         {
             gameTimer.Stop();
             SaveHighScore();
+            UpdatePauseControls();
+            return;
         }
 
         Invalidate(invalidateChildren: true);
@@ -201,8 +260,9 @@ public partial class Form1 : Form
     private void ResetGame()
     {
         gameTimer.Stop();
+        paused = false;
         game.Reset();
-        Invalidate(invalidateChildren: true);
+        UpdatePauseControls();
     }
 
     private RectangleF GetGameViewport()
@@ -224,11 +284,13 @@ public partial class Form1 : Form
         }
 
         float scale = viewport.Width / GameState.Width;
-        menuButton.Bounds = Rectangle.Round(new RectangleF(
-            viewport.Left + MenuButtonBounds.X * scale,
-            viewport.Top + MenuButtonBounds.Y * scale,
-            MenuButtonBounds.Width * scale,
-            MenuButtonBounds.Height * scale));
+        pauseButton.Bounds = ScaleBounds(PauseButtonBounds);
+        resumeButton.Bounds = ScaleBounds(ResumeButtonBounds);
+        restartButton.Bounds = ScaleBounds(RestartButtonBounds);
+
+        Rectangle ScaleBounds(Rectangle bounds) => Rectangle.Round(new RectangleF(
+            viewport.Left + bounds.X * scale, viewport.Top + bounds.Y * scale,
+            bounds.Width * scale, bounds.Height * scale));
 
         Invalidate(invalidateChildren: true);
     }
@@ -256,7 +318,7 @@ public partial class Form1 : Form
             graphics.TranslateTransform(viewport.Left, viewport.Top);
             graphics.ScaleTransform(scale, scale);
             renderer.Draw(graphics, new Rectangle(0, 0, GameState.Width, GameHeight),
-                game, gameTimer.Enabled, bestScore, scoreMessage);
+                game, gameTimer.Enabled, paused, bestScore, scoreMessage);
         }
         finally
         {
@@ -264,11 +326,4 @@ public partial class Form1 : Form
         }
     }
 
-    private sealed class GameMenuColors : ProfessionalColorTable
-    {
-        public override Color ToolStripDropDownBackground => ArcadeRenderer.Ink;
-        public override Color MenuBorder => ArcadeRenderer.Gold;
-        public override Color MenuItemSelected => Color.FromArgb(42, 70, 85);
-        public override Color MenuItemBorder => ArcadeRenderer.Gold;
-    }
 }
