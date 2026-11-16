@@ -9,7 +9,7 @@ internal sealed class GameState
     public const int PipeWidth = 72;
     public const int PipeRimHeight = 22;
     public const int PipeBodyInset = 4;
-    public const int GapHeight = 102;
+    public const int GapHeight = 114;
     private const int MinimumPipeSpacing = 255;
     private const int MaximumPipeSpacing = 295;
     private const int MinimumGapTop = 125;
