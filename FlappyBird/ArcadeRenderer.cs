@@ -46,11 +46,12 @@ internal sealed class ArcadeRenderer : Component
         }
 
 
-        if (running)
+        if (!game.IsGameOver)
         {
-            DrawScore(graphics, game.Score, bestScore);
+            DrawScore(graphics, game.Score);
         }
-        else
+
+        if (!running)
         {
             DrawMessage(graphics, game.IsGameOver, game.Score, bestScore);
         }
@@ -183,11 +184,24 @@ internal sealed class ArcadeRenderer : Component
             new Rectangle(-offset, top, groundStrip.Width * GroundPixelScale, bounds.Height - top));
     }
 
-    private static void DrawScore(Graphics graphics, int score, int bestScore)
+    private static void DrawScore(Graphics graphics, int score)
     {
-        PixelScore.Draw(graphics, score.ToString(CultureInfo.InvariantCulture), new Rectangle(105, 10, 270, 42), 4, 2);
-        PixelScore.Draw(graphics, "REKOR " + bestScore.ToString(CultureInfo.InvariantCulture),
-            new Rectangle(105, 53, 270, 22), 2, 1);
+        using var digits = new GraphicsPath();
+        using var format = StringFormat.GenericTypographic;
+        digits.AddString(score.ToString(CultureInfo.InvariantCulture), SystemFonts.MessageBoxFont!.FontFamily,
+            (int)FontStyle.Bold, 38, PointF.Empty, format);
+
+        using var position = new Matrix();
+        position.Scale(0.82f, 1);
+        digits.Transform(position);
+        RectangleF digitBounds = digits.GetBounds();
+        position.Reset();
+        position.Translate((GameState.Width - digitBounds.Width) / 2 - digitBounds.X, 26 - digitBounds.Y);
+        digits.Transform(position);
+
+        using var outline = new Pen(Color.FromArgb(19, 24, 26), 4) { LineJoin = LineJoin.Round };
+        graphics.DrawPath(outline, digits);
+        graphics.FillPath(Brushes.White, digits);
     }
 
     private void DrawMessage(Graphics graphics, bool gameOver, int score, int bestScore)
@@ -203,10 +217,14 @@ internal sealed class ArcadeRenderer : Component
         graphics.FillRectangle(accent, panel.X + 3, panel.Y + 3, panel.Width - 6, 6);
 
         string title = gameOver ? "Game Over" : "Flappy Bird";
-        string details = gameOver ? $"Skor {score}     Rekor {bestScore}" : $"Rekor {bestScore}";
         string action = gameOver ? "Yeniden dene: Tıkla / Boşluk" : "Başla: Tıkla / Boşluk";
         DrawCentered(graphics, title, titleFont, Ink, new Rectangle(55, 191, 370, 42));
-        DrawCentered(graphics, details, labelFont, Ink, new Rectangle(55, 238, 370, 23));
+        if (gameOver)
+        {
+            DrawCentered(graphics, $"Skor {score}     Rekor {bestScore}",
+                labelFont, Ink, new Rectangle(55, 238, 370, 23));
+        }
+
         graphics.FillRectangle(border, 107, 279, 266, 42);
         DrawCentered(graphics, action, hintFont, Cream, new Rectangle(107, 279, 266, 42));
     }
