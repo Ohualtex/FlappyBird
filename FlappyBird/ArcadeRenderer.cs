@@ -14,7 +14,10 @@ internal sealed class ArcadeRenderer : Component
     private readonly Bitmap birdFlap = PixelAssets.Load("bird-flap");
     private readonly Bitmap pipeBody = PixelAssets.Load("pipe-body");
     private readonly Bitmap pipeCap = PixelAssets.Load("pipe-cap");
-    private readonly Bitmap groundTile = PixelAssets.Load("ground-tile");
+    private const int GroundPixelScale = 2;
+    private const int GroundTileWidth = 28;
+
+    private readonly Bitmap groundStrip = CreateGroundStrip();
     private readonly Font titleFont = new(SystemFonts.MessageBoxFont!.FontFamily, 30, FontStyle.Bold, GraphicsUnit.Pixel);
     private readonly Font scoreFont = new(SystemFonts.MessageBoxFont!.FontFamily, 38, FontStyle.Bold, GraphicsUnit.Pixel);
     private readonly Font labelFont = new(SystemFonts.MessageBoxFont!.FontFamily, 14, FontStyle.Bold, GraphicsUnit.Pixel);
@@ -156,17 +159,28 @@ internal sealed class ArcadeRenderer : Component
         }
     }
 
+    private static Bitmap CreateGroundStrip()
+    {
+        using var tile = PixelAssets.Load("ground-tile");
+        int copies = (GameState.Width + GroundTileWidth - 1) / GroundTileWidth + 1;
+        var strip = new Bitmap(tile.Width * copies, tile.Height);
+        using var graphics = Graphics.FromImage(strip);
+        for (int x = 0; x < strip.Width; x += tile.Width)
+        {
+            graphics.DrawImageUnscaled(tile, x, 0);
+        }
+
+        return strip;
+    }
+
     private void DrawGround(Graphics graphics, Rectangle bounds, long distanceTraveled)
     {
         int top = GameState.GroundY;
-        int tileWidth = groundTile.Width * 2;
-        int offset = (int)(distanceTraveled % tileWidth);
-        for (int x = -offset; x < bounds.Width; x += tileWidth)
-        {
-            PixelAssets.Draw(graphics, groundTile, new Rectangle(x, top, tileWidth, bounds.Height - top));
-        }
+        int offset = (int)(distanceTraveled % GroundTileWidth);
+        // Scale a single strip so fractional window sizes cannot create gaps between tiles.
+        PixelAssets.Draw(graphics, groundStrip,
+            new Rectangle(-offset, top, groundStrip.Width * GroundPixelScale, bounds.Height - top));
     }
-
 
     private void DrawScore(Graphics graphics, int score, int bestScore)
     {
@@ -232,7 +246,7 @@ internal sealed class ArcadeRenderer : Component
             birdFlap.Dispose();
             pipeBody.Dispose();
             pipeCap.Dispose();
-            groundTile.Dispose();
+            groundStrip.Dispose();
             titleFont.Dispose();
             scoreFont.Dispose();
             labelFont.Dispose();
