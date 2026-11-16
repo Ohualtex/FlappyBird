@@ -8,7 +8,11 @@ internal sealed class GameState
     public const int BirdSize = 28;
     public const int PipeWidth = 72;
     public const int GapHeight = 168;
-    private const int PipeSpacing = 275;
+    private const int MinimumPipeSpacing = 255;
+    private const int MaximumPipeSpacing = 295;
+    private const int MinimumGapTop = 125;
+    private const int MaximumGapTop = 305;
+    private const int MaximumGapChange = 82;
     private const int ScrollSpeed = 4;
 
     private const int WingFlapDuration = 8;
@@ -33,8 +37,8 @@ internal sealed class GameState
         Score = 0;
         DistanceTraveled = 0;
         IsGameOver = false;
-        Place(Obstacles[0], Width + 35, 185);
-        Place(Obstacles[1], Width + 35 + PipeSpacing, 255);
+        Place(Obstacles[0], Width + 35, Random.Shared.Next(145, 271));
+        PlaceAfter(Obstacles[1], Obstacles[0]);
     }
 
     public void Flap()
@@ -85,8 +89,8 @@ internal sealed class GameState
 
             if (obstacle.X + PipeWidth <= 0)
             {
-                int nextX = Obstacles.Max(pipe => pipe.X) + PipeSpacing;
-                Place(obstacle, nextX, Random.Shared.Next(105, 321));
+                Obstacle last = Obstacles.MaxBy(pipe => pipe.X)!;
+                PlaceAfter(obstacle, last);
             }
         }
     }
@@ -97,6 +101,15 @@ internal sealed class GameState
             && BirdX + BirdSize > obstacle.X;
         return overlapsHorizontally
             && (BirdY < obstacle.GapTop || BirdY + BirdSize > obstacle.GapTop + GapHeight);
+    }
+
+    private static void PlaceAfter(Obstacle obstacle, Obstacle previous)
+    {
+        int spacing = Random.Shared.Next(MinimumPipeSpacing, MaximumPipeSpacing + 1);
+        int lowestGap = Math.Max(MinimumGapTop, previous.GapTop - MaximumGapChange);
+        int highestGap = Math.Min(MaximumGapTop, previous.GapTop + MaximumGapChange);
+        int gapTop = Random.Shared.Next(lowestGap, highestGap + 1);
+        Place(obstacle, previous.X + spacing, gapTop);
     }
 
     private static void Place(Obstacle obstacle, int x, int gapTop)
