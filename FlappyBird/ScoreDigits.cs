@@ -8,15 +8,20 @@ internal static class ScoreDigits
     private const int Top = 26;
     private const float ScoreScale = 1.5f;
 
-    public static void Draw(Graphics graphics, string digits)
+    public static void Draw(Graphics graphics, string digits) =>
+        Draw(graphics, digits, GameState.Width / 2, Top, ScoreScale, GameState.Width);
+
+    public static void Draw(Graphics graphics, string digits, float centerX, int top, float scale, int maxWidth)
     {
-        float width = digits.Sum(DigitWidth) * ScoreScale;
+        int digitWidth = digits.Sum(DigitWidth);
+        scale = Math.Min(scale, (float)maxWidth / (digitWidth + 1));
+        float width = digitWidth * scale;
         int x = 0;
         var state = graphics.Save();
         try
         {
-            graphics.TranslateTransform((GameState.Width - width) / 2, Top);
-            graphics.ScaleTransform(ScoreScale, ScoreScale);
+            graphics.TranslateTransform(centerX - width / 2, top);
+            graphics.ScaleTransform(scale, scale);
             graphics.SmoothingMode = SmoothingMode.None;
             using var shadow = new SolidBrush(Color.FromArgb(28, 63, 67));
             foreach (char digit in digits)

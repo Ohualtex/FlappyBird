@@ -57,9 +57,13 @@ internal sealed class ArcadeRenderer : Component
             graphics.FillRectangle(dim, bounds);
             DrawCentered(graphics, "DURAKLATILDI", titleFont, Cream, new Rectangle(20, 210, 440, 50));
         }
+        else if (game.IsGameOver)
+        {
+            ResultScreen.Draw(graphics, game.Score, bestScore, labelFont, hintFont);
+        }
         else if (!running)
         {
-            DrawMessage(graphics, game.IsGameOver, game.Score, bestScore);
+            DrawStartMessage(graphics);
         }
 
         if (scoreMessage is not null)
@@ -190,7 +194,7 @@ internal sealed class ArcadeRenderer : Component
             new Rectangle(-offset, top, groundStrip.Width * GroundPixelScale, bounds.Height - top));
     }
 
-    private void DrawMessage(Graphics graphics, bool gameOver, int score, int bestScore)
+    private void DrawStartMessage(Graphics graphics)
     {
         var panel = new Rectangle(55, 162, 370, 194);
         using var shadow = new SolidBrush(Color.FromArgb(95, Ink));
@@ -202,20 +206,13 @@ internal sealed class ArcadeRenderer : Component
         graphics.FillRectangle(interior, Rectangle.Inflate(panel, -3, -3));
         graphics.FillRectangle(accent, panel.X + 3, panel.Y + 3, panel.Width - 6, 6);
 
-        string title = gameOver ? "Game Over" : "Flappy Bird";
-        string action = gameOver ? "Yeniden dene: Tıkla / Boşluk" : "Başla: Tıkla / Boşluk";
-        DrawCentered(graphics, title, titleFont, Ink, new Rectangle(55, 191, 370, 42));
-        if (gameOver)
-        {
-            DrawCentered(graphics, $"Skor {score}     Rekor {bestScore}",
-                labelFont, Ink, new Rectangle(55, 238, 370, 23));
-        }
+        DrawCentered(graphics, "Flappy Bird", titleFont, Ink, new Rectangle(55, 191, 370, 42));
 
         graphics.FillRectangle(border, 107, 279, 266, 42);
-        DrawCentered(graphics, action, hintFont, Cream, new Rectangle(107, 279, 266, 42));
+        DrawCentered(graphics, "Başla: Tıkla / Boşluk", hintFont, Cream, new Rectangle(107, 279, 266, 42));
     }
 
-    private static void DrawCentered(Graphics graphics, string text, Font font, Color color, Rectangle bounds)
+    internal static void DrawCentered(Graphics graphics, string text, Font font, Color color, Rectangle bounds)
     {
         using var textBrush = new SolidBrush(color);
         using var alignment = new StringFormat

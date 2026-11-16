@@ -2,7 +2,7 @@ using System.Drawing.Drawing2D;
 
 namespace FlappyBird;
 
-internal sealed class PauseButton : Button
+internal sealed class ArcadeButton : Button
 {
     private const int ArtWidth = 22;
     private const int ArtHeight = 23;
@@ -11,7 +11,7 @@ internal sealed class PauseButton : Button
     private bool hovered;
     private bool pressed;
 
-    public PauseButton(Action<Graphics, Point> drawScene)
+    public ArcadeButton(Action<Graphics, Point> drawScene)
     {
         this.drawScene = drawScene;
         SetStyle(ControlStyles.Opaque | ControlStyles.UserPaint
@@ -98,10 +98,17 @@ internal sealed class PauseButton : Button
         var state = graphics.Save();
         try
         {
-            graphics.TranslateTransform((ClientSize.Width - size) / 2f, (ClientSize.Height - size) / 2f);
-            graphics.ScaleTransform((float)size / ArtWidth, (float)size / ArtHeight);
+            bool iconOnly = Text.Length == 0;
+            int width = iconOnly ? ArtWidth : 84;
+            if (iconOnly)
+            {
+                graphics.TranslateTransform((ClientSize.Width - size) / 2f, (ClientSize.Height - size) / 2f);
+            }
+
+            graphics.ScaleTransform((float)(iconOnly ? size : ClientSize.Width) / width,
+                (float)(iconOnly ? size : ClientSize.Height) / ArtHeight);
             graphics.SmoothingMode = SmoothingMode.None;
-            DrawFace(graphics);
+            DrawFace(graphics, width);
         }
         finally
         {
@@ -109,7 +116,7 @@ internal sealed class PauseButton : Button
         }
     }
 
-    private void DrawFace(Graphics graphics)
+    private void DrawFace(Graphics graphics, int width)
     {
         bool sunken = pressed && hovered;
         using var ink = new SolidBrush(Color.FromArgb(52, 42, 31));
@@ -119,11 +126,19 @@ internal sealed class PauseButton : Button
         using var highlight = new SolidBrush(Color.FromArgb(251, 149, 55));
         using var shadow = new SolidBrush(Color.FromArgb(152, 67, 21));
 
-        graphics.FillRectangle(ink, 0, 0, ArtWidth, ArtHeight);
-        graphics.FillRectangle(cream, 1, 1, 20, 20);
-        graphics.FillRectangle(shadow, 3, 3, 16, 16);
-        graphics.FillRectangle(orange, 3, sunken ? 5 : 3, 16, 14);
-        graphics.FillRectangle(highlight, 3, sunken ? 18 : 3, 16, 1);
+        graphics.FillRectangle(ink, 0, 0, width, ArtHeight);
+        graphics.FillRectangle(cream, 1, 1, width - 2, 20);
+        graphics.FillRectangle(shadow, 3, 3, width - 6, 16);
+        graphics.FillRectangle(orange, 3, sunken ? 5 : 3, width - 6, 14);
+        graphics.FillRectangle(highlight, 3, sunken ? 18 : 3, width - 6, 1);
+
+        if (Text.Length > 0)
+        {
+            using var font = new Font(SystemFonts.MessageBoxFont!.FontFamily, 9, FontStyle.Bold, GraphicsUnit.Pixel);
+            ArcadeRenderer.DrawCentered(graphics, Text, font, cream.Color,
+                new Rectangle(3, sunken ? 5 : 3, width - 6, 14));
+            return;
+        }
 
         int iconTop = sunken ? 7 : 6;
         if (showingPlayIcon)

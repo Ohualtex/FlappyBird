@@ -13,7 +13,8 @@ public partial class Form1 : Form
     private readonly GameState game = new();
     private readonly ArcadeRenderer renderer = new();
     private readonly System.Windows.Forms.Timer gameTimer;
-    private readonly PauseButton pauseButton;
+    private readonly ArcadeButton pauseButton;
+    private readonly ArcadeButton retryButton;
     private readonly Button resumeButton;
     private readonly Button restartButton;
     private bool paused;
@@ -56,7 +57,7 @@ public partial class Form1 : Form
         };
         gameTimer.Tick += AdvanceGame;
 
-        pauseButton = new PauseButton(DrawScene)
+        pauseButton = new ArcadeButton(DrawScene)
         {
             AccessibleName = "Duraklat",
             Visible = false
@@ -66,7 +67,13 @@ public partial class Form1 : Form
         resumeButton.Click += (_, _) => TogglePause();
         restartButton = CreatePauseAction("Yeni oyun", ArcadeRenderer.Cream);
         restartButton.Click += (_, _) => ResetGame();
-        Controls.AddRange([pauseButton, resumeButton, restartButton]);
+        retryButton = new ArcadeButton(DrawScene)
+        {
+            Text = "Tekrar oyna",
+            Visible = false
+        };
+        retryButton.Click += (_, _) => FlapOrRestart();
+        Controls.AddRange([pauseButton, resumeButton, restartButton, retryButton]);
 
         ClientSizeChanged += (_, _) => LayoutGame();
         LayoutGame();
@@ -181,7 +188,7 @@ public partial class Form1 : Form
 
         paused = !paused;
         gameTimer.Enabled = !paused;
-        UpdatePauseControls();
+        UpdateGameControls();
         if (paused)
         {
             resumeButton.Select();
@@ -192,12 +199,13 @@ public partial class Form1 : Form
         }
     }
 
-    private void UpdatePauseControls()
+    private void UpdateGameControls()
     {
         pauseButton.ShowPlayIcon(paused);
         pauseButton.Visible = paused || gameTimer.Enabled;
         resumeButton.Visible = paused;
         restartButton.Visible = paused;
+        retryButton.Visible = game.IsGameOver;
         Invalidate(invalidateChildren: true);
     }
 
@@ -216,7 +224,7 @@ public partial class Form1 : Form
 
         game.Flap();
         gameTimer.Start();
-        UpdatePauseControls();
+        UpdateGameControls();
     }
 
     private void AdvanceGame(object? sender, EventArgs e)
@@ -231,7 +239,7 @@ public partial class Form1 : Form
         {
             gameTimer.Stop();
             SaveHighScore();
-            UpdatePauseControls();
+            UpdateGameControls();
             return;
         }
 
@@ -262,7 +270,7 @@ public partial class Form1 : Form
         gameTimer.Stop();
         paused = false;
         game.Reset();
-        UpdatePauseControls();
+        UpdateGameControls();
     }
 
     private RectangleF GetGameViewport()
@@ -287,6 +295,7 @@ public partial class Form1 : Form
         pauseButton.Bounds = ScaleBounds(PauseButtonBounds);
         resumeButton.Bounds = ScaleBounds(ResumeButtonBounds);
         restartButton.Bounds = ScaleBounds(RestartButtonBounds);
+        retryButton.Bounds = ScaleBounds(ResultScreen.RetryBounds);
 
         Rectangle ScaleBounds(Rectangle bounds) => Rectangle.Round(new RectangleF(
             viewport.Left + bounds.X * scale, viewport.Top + bounds.Y * scale,
