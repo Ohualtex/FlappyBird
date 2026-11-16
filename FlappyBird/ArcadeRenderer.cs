@@ -48,7 +48,7 @@ internal sealed class ArcadeRenderer : Component
 
         if (!game.IsGameOver)
         {
-            DrawScore(graphics, game.Score);
+            ScoreDigits.Draw(graphics, game.Score.ToString(CultureInfo.InvariantCulture));
         }
 
         if (!running)
@@ -182,19 +182,6 @@ internal sealed class ArcadeRenderer : Component
         // Scale a single strip so fractional window sizes cannot create gaps between tiles.
         PixelAssets.Draw(graphics, groundStrip,
             new Rectangle(-offset, top, groundStrip.Width * GroundPixelScale, bounds.Height - top));
-    }
-
-    private static void DrawScore(Graphics graphics, int score)
-    {
-        using var digits = ScoreDigits.Create(score.ToString(CultureInfo.InvariantCulture));
-        RectangleF digitBounds = digits.GetBounds();
-        using var position = new Matrix();
-        position.Translate((GameState.Width - digitBounds.Width) / 2 - digitBounds.X, 26 - digitBounds.Y);
-        digits.Transform(position);
-
-        using var outline = new Pen(Color.FromArgb(19, 24, 26), 3) { LineJoin = LineJoin.Miter };
-        graphics.DrawPath(outline, digits);
-        graphics.FillPath(Brushes.White, digits);
     }
 
     private void DrawMessage(Graphics graphics, bool gameOver, int score, int bestScore)
