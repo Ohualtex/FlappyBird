@@ -111,7 +111,7 @@ internal sealed class ArcadeRenderer : Component
 
     private static void DrawPipePair(Graphics graphics, GameState.Obstacle obstacle)
     {
-        const int rimHeight = 22;
+        const int rimHeight = GameState.PipeRimHeight;
         int gapBottom = obstacle.GapTop + GameState.GapHeight;
         using var outline = new SolidBrush(Color.FromArgb(37, 51, 34));
         using var body = new SolidBrush(Color.FromArgb(120, 189, 53));
@@ -126,10 +126,12 @@ internal sealed class ArcadeRenderer : Component
         {
             int x = obstacle.X;
             int width = GameState.PipeWidth;
-            graphics.FillRectangle(outline, x, top, width, height);
-            graphics.FillRectangle(body, x + 4, top, width - 8, height);
-            graphics.FillRectangle(light, x + 9, top, 8, height);
-            graphics.FillRectangle(shadow, x + width - 14, top, 10, height);
+            int bodyX = x + GameState.PipeBodyInset;
+            int bodyWidth = width - GameState.PipeBodyInset * 2;
+            graphics.FillRectangle(outline, bodyX, top, bodyWidth, height);
+            graphics.FillRectangle(body, bodyX + 4, top, bodyWidth - 8, height);
+            graphics.FillRectangle(light, bodyX + 8, top, 8, height);
+            graphics.FillRectangle(shadow, bodyX + bodyWidth - 13, top, 9, height);
 
             graphics.FillRectangle(outline, x, rimY, width, rimHeight);
             graphics.FillRectangle(rim, x + 4, rimY + 4, width - 8, rimHeight - 8);

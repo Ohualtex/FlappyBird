@@ -7,6 +7,8 @@ internal sealed class GameState
     public const int BirdX = 95;
     public const int BirdSize = 28;
     public const int PipeWidth = 72;
+    public const int PipeRimHeight = 22;
+    public const int PipeBodyInset = 4;
     public const int GapHeight = 168;
     private const int MinimumPipeSpacing = 255;
     private const int MaximumPipeSpacing = 295;
@@ -96,10 +98,22 @@ internal sealed class GameState
 
     private bool HitsBird(Obstacle obstacle)
     {
-        bool overlapsHorizontally = BirdX < obstacle.X + PipeWidth
-            && BirdX + BirdSize > obstacle.X;
-        return overlapsHorizontally
-            && (BirdY < obstacle.GapTop || BirdY + BirdSize > obstacle.GapTop + GapHeight);
+        int right = obstacle.X + PipeWidth;
+        if (BirdX >= right || BirdX + BirdSize <= obstacle.X)
+        {
+            return false;
+        }
+
+        double birdBottom = BirdY + BirdSize;
+        int gapBottom = obstacle.GapTop + GapHeight;
+        bool overlapsBody = BirdX < right - PipeBodyInset && BirdX + BirdSize > obstacle.X + PipeBodyInset;
+        if (overlapsBody)
+        {
+            return BirdY < obstacle.GapTop || birdBottom > gapBottom;
+        }
+
+        return (BirdY < obstacle.GapTop && birdBottom > obstacle.GapTop - PipeRimHeight)
+            || (BirdY < gapBottom + PipeRimHeight && birdBottom > gapBottom);
     }
 
     private static void PlaceAfter(Obstacle obstacle, Obstacle previous)
