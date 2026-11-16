@@ -6,6 +6,7 @@ namespace FlappyBird;
 public partial class Form1 : Form
 {
     private const int GameHeight = 640;
+    private const int StartTransitionSteps = 9;
     private static readonly Rectangle PauseButtonBounds = new(16, 16, 44, 44);
     private static readonly Rectangle ResumeButtonBounds = new(120, 278, 240, 44);
     private static readonly Rectangle RestartButtonBounds = new(120, 334, 240, 44);
@@ -18,6 +19,7 @@ public partial class Form1 : Form
     private readonly Button resumeButton;
     private readonly Button restartButton;
     private bool paused;
+    private int startTransitionStepsRemaining;
     private Rectangle? restoreWindowBounds;
 
     private readonly HighScoreStore highScoreStore;
@@ -221,6 +223,10 @@ public partial class Form1 : Form
         {
             ResetGame();
         }
+        else if (!gameTimer.Enabled)
+        {
+            startTransitionStepsRemaining = StartTransitionSteps;
+        }
 
         game.Flap();
         gameTimer.Start();
@@ -235,9 +241,15 @@ public partial class Form1 : Form
         }
 
         game.Step();
+        if (startTransitionStepsRemaining > 0)
+        {
+            startTransitionStepsRemaining--;
+        }
+
         if (game.IsGameOver)
         {
             gameTimer.Stop();
+            startTransitionStepsRemaining = 0;
             SaveHighScore();
             UpdateGameControls();
             return;
@@ -269,6 +281,7 @@ public partial class Form1 : Form
     {
         gameTimer.Stop();
         paused = false;
+        startTransitionStepsRemaining = 0;
         game.Reset();
         UpdateGameControls();
     }
@@ -327,7 +340,8 @@ public partial class Form1 : Form
             graphics.TranslateTransform(viewport.Left, viewport.Top);
             graphics.ScaleTransform(scale, scale);
             renderer.Draw(graphics, new Rectangle(0, 0, GameState.Width, GameHeight),
-                game, gameTimer.Enabled, paused, bestScore, scoreMessage);
+                game, gameTimer.Enabled, paused, bestScore, scoreMessage,
+                1f - (float)startTransitionStepsRemaining / StartTransitionSteps);
         }
         finally
         {

@@ -23,7 +23,8 @@ internal sealed class ArcadeRenderer : Component
     private readonly Font labelFont = new(SystemFonts.MessageBoxFont!.FontFamily, 14, FontStyle.Bold, GraphicsUnit.Pixel);
     private readonly Font hintFont = new(SystemFonts.MessageBoxFont!.FontFamily, 14, FontStyle.Regular, GraphicsUnit.Pixel);
 
-    public void Draw(Graphics graphics, Rectangle bounds, GameState game, bool running, bool paused, int bestScore, string? scoreMessage)
+    public void Draw(Graphics graphics, Rectangle bounds, GameState game, bool running, bool paused, int bestScore,
+        string? scoreMessage, float startProgress)
     {
         bool ready = !running && !paused && !game.IsGameOver;
         graphics.SmoothingMode = SmoothingMode.AntiAlias;
@@ -38,7 +39,7 @@ internal sealed class ArcadeRenderer : Component
                 DrawPipePair(graphics, obstacle);
             }
 
-            DrawBird(graphics, game, ready);
+            DrawBird(graphics, game, ready ? 0f : startProgress);
             DrawGround(graphics, bounds, game.DistanceTraveled);
         }
         finally
@@ -151,7 +152,7 @@ internal sealed class ArcadeRenderer : Component
         PixelAssets.Draw(graphics, pipeCap, new Rectangle(x, gapBottom, GameState.PipeWidth, rimHeight));
     }
 
-    private void DrawBird(Graphics graphics, GameState game, bool ready)
+    private void DrawBird(Graphics graphics, GameState game, float startProgress)
     {
         const int center = GameState.BirdSize / 2;
         const float pixelScale = 2.5f;
@@ -162,8 +163,11 @@ internal sealed class ArcadeRenderer : Component
         GraphicsState transform = graphics.Save();
         try
         {
-            float x = ready ? GameState.Width / 2f : GameState.BirdX + center;
-            float y = ready ? 320 : (float)game.BirdY + center;
+            const float readyX = GameState.Width / 2f;
+            const float readyY = 320;
+            float blend = startProgress * startProgress * (3f - 2f * startProgress);
+            float x = float.Lerp(readyX, GameState.BirdX + center, blend);
+            float y = float.Lerp(readyY, (float)game.BirdY + center, blend);
             graphics.TranslateTransform(x, y);
             graphics.RotateTransform(angle);
             PixelAssets.Draw(graphics, frame, new Rectangle(-width / 2, -height / 2, width, height));
