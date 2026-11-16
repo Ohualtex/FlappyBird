@@ -25,6 +25,7 @@ internal sealed class ArcadeRenderer : Component
 
     public void Draw(Graphics graphics, Rectangle bounds, GameState game, bool running, bool paused, int bestScore, string? scoreMessage)
     {
+        bool ready = !running && !paused && !game.IsGameOver;
         graphics.SmoothingMode = SmoothingMode.AntiAlias;
         var worldState = graphics.Save();
         try
@@ -37,7 +38,7 @@ internal sealed class ArcadeRenderer : Component
                 DrawPipePair(graphics, obstacle);
             }
 
-            DrawBird(graphics, game);
+            DrawBird(graphics, game, ready);
             DrawGround(graphics, bounds, game.DistanceTraveled);
         }
         finally
@@ -61,7 +62,7 @@ internal sealed class ArcadeRenderer : Component
         {
             ResultScreen.Draw(graphics, game.Score, bestScore, labelFont, hintFont);
         }
-        else if (!running)
+        else if (ready)
         {
             DrawStartMessage(graphics);
         }
@@ -150,7 +151,7 @@ internal sealed class ArcadeRenderer : Component
         PixelAssets.Draw(graphics, pipeCap, new Rectangle(x, gapBottom, GameState.PipeWidth, rimHeight));
     }
 
-    private void DrawBird(Graphics graphics, GameState game)
+    private void DrawBird(Graphics graphics, GameState game, bool ready)
     {
         const int center = GameState.BirdSize / 2;
         const float pixelScale = 2.5f;
@@ -161,7 +162,9 @@ internal sealed class ArcadeRenderer : Component
         GraphicsState transform = graphics.Save();
         try
         {
-            graphics.TranslateTransform(GameState.BirdX + center, (float)game.BirdY + center);
+            float x = ready ? GameState.Width / 2f : GameState.BirdX + center;
+            float y = ready ? 320 : (float)game.BirdY + center;
+            graphics.TranslateTransform(x, y);
             graphics.RotateTransform(angle);
             PixelAssets.Draw(graphics, frame, new Rectangle(-width / 2, -height / 2, width, height));
         }
@@ -196,20 +199,9 @@ internal sealed class ArcadeRenderer : Component
 
     private void DrawStartMessage(Graphics graphics)
     {
-        var panel = new Rectangle(55, 162, 370, 194);
-        using var shadow = new SolidBrush(Color.FromArgb(95, Ink));
-        using var border = new SolidBrush(Ink);
-        using var interior = new SolidBrush(Cream);
-        using var accent = new SolidBrush(Gold);
-        graphics.FillRectangle(shadow, panel.X + 6, panel.Y + 7, panel.Width, panel.Height);
-        graphics.FillRectangle(border, panel);
-        graphics.FillRectangle(interior, Rectangle.Inflate(panel, -3, -3));
-        graphics.FillRectangle(accent, panel.X + 3, panel.Y + 3, panel.Width - 6, 6);
-
-        DrawCentered(graphics, "Flappy Bird", titleFont, Ink, new Rectangle(55, 191, 370, 42));
-
-        graphics.FillRectangle(border, 107, 279, 266, 42);
-        DrawCentered(graphics, "Başla: Tıkla / Boşluk", hintFont, Cream, new Rectangle(107, 279, 266, 42));
+        PixelHeading.Draw(graphics, "HAZIR OL", 180);
+        var hint = new Rectangle(0, 352, GameState.Width, 30);
+        DrawCentered(graphics, "Tıkla veya Boşluk", labelFont, Ink, hint);
     }
 
     internal static void DrawCentered(Graphics graphics, string text, Font font, Color color, Rectangle bounds)
