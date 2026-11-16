@@ -6,19 +6,23 @@ internal static class ScoreDigits
 {
     private const int DigitHeight = 24;
     private const int Top = 26;
+    private const float ScoreScale = 1.5f;
 
     public static void Draw(Graphics graphics, string digits)
     {
-        int x = (GameState.Width - digits.Sum(DigitWidth)) / 2;
+        float width = digits.Sum(DigitWidth) * ScoreScale;
+        int x = 0;
         var state = graphics.Save();
         try
         {
+            graphics.TranslateTransform((GameState.Width - width) / 2, Top);
+            graphics.ScaleTransform(ScoreScale, ScoreScale);
             graphics.SmoothingMode = SmoothingMode.None;
             using var shadow = new SolidBrush(Color.FromArgb(28, 63, 67));
             foreach (char digit in digits)
             {
-                DrawSilhouette(graphics, shadow, digit, x + 1, Top + 1);
-                DrawSilhouette(graphics, Brushes.Black, digit, x, Top);
+                DrawSilhouette(graphics, shadow, digit, x + 1, 1);
+                DrawSilhouette(graphics, Brushes.Black, digit, x, 0);
                 DrawFace(graphics, digit, x);
                 x += DigitWidth(digit);
             }
@@ -56,10 +60,10 @@ internal static class ScoreDigits
     private static void DrawFace(Graphics graphics, char digit, int x)
     {
         void White(int left, int top, int width, int height) =>
-            graphics.FillRectangle(Brushes.White, x + left, Top + top, width, height);
+            graphics.FillRectangle(Brushes.White, x + left, top, width, height);
 
         void Black(int left, int top, int width, int height) =>
-            graphics.FillRectangle(Brushes.Black, x + left, Top + top, width, height);
+            graphics.FillRectangle(Brushes.Black, x + left, top, width, height);
 
         switch (digit)
         {
