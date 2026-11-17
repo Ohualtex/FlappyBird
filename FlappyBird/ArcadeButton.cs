@@ -29,7 +29,7 @@ internal sealed class ArcadeButton : Button
     public void SetSpeakerMuted(bool muted)
     {
         speakerMuted = muted;
-        Text = muted ? "Ses: Kapalı" : "Ses: Açık";
+        Text = muted ? "Sound: Off" : "Sound: On";
     }
 
     public void ShowPlayIcon(bool showPlayIcon)
@@ -40,7 +40,7 @@ internal sealed class ArcadeButton : Button
         }
 
         showingPlayIcon = showPlayIcon;
-        AccessibleName = showPlayIcon ? "Devam et" : "Duraklat";
+        AccessibleName = showPlayIcon ? "Resume" : "Pause";
         Invalidate();
     }
 

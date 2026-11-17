@@ -24,10 +24,10 @@ internal static class ResultScreen
         graphics.FillRectangle(cream, Rectangle.Inflate(ScorePanel, -2, -2));
         graphics.SmoothingMode = smoothing;
 
-        DrawScore(graphics, "SKOR", score, ScorePanel.Left + ScorePanel.Width / 4, labelFont);
-        DrawScore(graphics, "REKOR", bestScore, ScorePanel.Right - ScorePanel.Width / 4, labelFont);
+        DrawScore(graphics, "SCORE", score, ScorePanel.Left + ScorePanel.Width / 4, labelFont);
+        DrawScore(graphics, "BEST", bestScore, ScorePanel.Right - ScorePanel.Width / 4, labelFont);
         var hint = new Rectangle(RetryBounds.X, RetryBounds.Bottom + 4, RetryBounds.Width, 22);
-        ArcadeRenderer.DrawCentered(graphics, "Boşluk", hintFont, ArcadeRenderer.Ink, hint);
+        ArcadeRenderer.DrawCentered(graphics, "Space", hintFont, ArcadeRenderer.Ink, hint);
     }
 
     private static void DrawScore(Graphics graphics, string label, int score, int center, Font labelFont)

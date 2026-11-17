@@ -55,7 +55,7 @@ internal sealed class ArcadeRenderer : Component
         {
             using var dim = new SolidBrush(Color.FromArgb(165, Ink));
             graphics.FillRectangle(dim, bounds);
-            PixelHeading.Draw(graphics, "DURAKLATILDI", 218, pixel: 4);
+            PixelHeading.Draw(graphics, "PAUSED", 218);
         }
         else if (game.IsGameOver)
         {
@@ -196,9 +196,9 @@ internal sealed class ArcadeRenderer : Component
 
     private void DrawStartMessage(Graphics graphics)
     {
-        PixelHeading.Draw(graphics, "HAZIR OL", 180);
+        PixelHeading.Draw(graphics, "GET READY", 180);
         var hint = new Rectangle(0, 352, GameState.Width, 30);
-        DrawCentered(graphics, "Tıkla veya Boşluk", labelFont, Ink, hint);
+        DrawCentered(graphics, "Click or press Space", labelFont, Ink, hint);
     }
 
     internal static void DrawCentered(Graphics graphics, string text, Font font, Color color, Rectangle bounds)

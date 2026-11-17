@@ -58,7 +58,7 @@ public partial class Form1 : Form
         this.highScoreStore = highScoreStore;
         if (!highScoreStore.TryLoad(out bestScore))
         {
-            scoreMessage = "Rekor okunamadı.";
+            scoreMessage = "Best score unavailable.";
         }
 
         gameTimer = new System.Windows.Forms.Timer(components)
@@ -69,23 +69,23 @@ public partial class Form1 : Form
 
         pauseButton = new ArcadeButton(DrawScene)
         {
-            AccessibleName = "Duraklat",
+            AccessibleName = "Pause",
             Visible = false
         };
         pauseButton.Click += (_, _) => TogglePause();
-        resumeButton = new ArcadeButton(DrawScene) { Text = "Devam et", Visible = false };
+        resumeButton = new ArcadeButton(DrawScene) { Text = "Resume", Visible = false };
         resumeButton.Click += (_, _) => TogglePause();
-        restartButton = new ArcadeButton(DrawScene, creamFace: true) { Text = "Yeni oyun", Visible = false };
+        restartButton = new ArcadeButton(DrawScene, creamFace: true) { Text = "New game", Visible = false };
         restartButton.Click += (_, _) => ResetGame();
         retryButton = new ArcadeButton(DrawScene)
         {
-            Text = "Tekrar oyna",
+            Text = "Play again",
             Visible = false
         };
         retryButton.Click += (_, _) => FlapOrRestart();
         soundButton = new ArcadeButton(DrawScene, creamFace: true, showsSpeaker: true)
         {
-            Text = "Ses: Açık",
+            Text = "Sound: On",
             Visible = false
         };
         soundButton.Click += (_, _) =>
@@ -281,7 +281,7 @@ public partial class Form1 : Form
         }
         else
         {
-            scoreMessage = "Rekor kaydedilemedi.";
+            scoreMessage = "Best score not saved.";
         }
     }
 
