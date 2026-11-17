@@ -10,13 +10,17 @@ public partial class Form1 : Form
     private static readonly Rectangle ResumeButtonBounds = new(120, 278, 240, 44);
     private static readonly Rectangle RestartButtonBounds = new(120, 334, 240, 44);
 
+    private static readonly Rectangle SoundButtonBounds = new(120, 390, 240, 44);
+
     private readonly GameState game = new();
     private readonly ArcadeRenderer renderer = new();
+    private readonly GameAudio audio = new();
     private readonly System.Windows.Forms.Timer gameTimer;
     private readonly ArcadeButton pauseButton;
     private readonly ArcadeButton retryButton;
     private readonly Button resumeButton;
     private readonly Button restartButton;
+    private readonly Button soundButton;
     private bool paused;
     private Rectangle? restoreWindowBounds;
 
@@ -43,7 +47,9 @@ public partial class Form1 : Form
         ClientSize = new Size(startupWidth, startupWidth * GameHeight / GameState.Width);
         BackColor = ArcadeRenderer.Ink;
         DoubleBuffered = true;
-        (components ??= new System.ComponentModel.Container()).Add(renderer);
+        components ??= new System.ComponentModel.Container();
+        components.Add(renderer);
+        components.Add(audio);
 
         this.highScoreStore = highScoreStore;
         if (!highScoreStore.TryLoad(out bestScore))
@@ -73,7 +79,13 @@ public partial class Form1 : Form
             Visible = false
         };
         retryButton.Click += (_, _) => FlapOrRestart();
-        Controls.AddRange([pauseButton, resumeButton, restartButton, retryButton]);
+        soundButton = CreatePauseAction("Ses: Açık", ArcadeRenderer.Cream);
+        soundButton.Click += (_, _) =>
+        {
+            audio.ToggleMute();
+            soundButton.Text = audio.Muted ? "Ses: Kapalı" : "Ses: Açık";
+        };
+        Controls.AddRange([pauseButton, resumeButton, restartButton, soundButton, retryButton]);
 
         ClientSizeChanged += (_, _) => LayoutGame();
         LayoutGame();
@@ -205,6 +217,7 @@ public partial class Form1 : Form
         pauseButton.Visible = paused || gameTimer.Enabled;
         resumeButton.Visible = paused;
         restartButton.Visible = paused;
+        soundButton.Visible = paused;
         retryButton.Visible = game.IsGameOver;
         Invalidate(invalidateChildren: true);
     }
@@ -223,6 +236,7 @@ public partial class Form1 : Form
         }
 
         game.Flap();
+        audio.PlayFlap();
         gameTimer.Start();
         UpdateGameControls();
     }
@@ -234,13 +248,20 @@ public partial class Form1 : Form
             return;
         }
 
+        int previousScore = game.Score;
         game.Step();
-       if (game.IsGameOver)
+        if (game.IsGameOver)
         {
             gameTimer.Stop();
+            audio.PlayHit();
             SaveHighScore();
             UpdateGameControls();
             return;
+        }
+
+        if (game.Score > previousScore)
+        {
+            audio.PlayPoint();
         }
 
         Invalidate(invalidateChildren: true);
@@ -295,6 +316,7 @@ public partial class Form1 : Form
         pauseButton.Bounds = ScaleBounds(PauseButtonBounds);
         resumeButton.Bounds = ScaleBounds(ResumeButtonBounds);
         restartButton.Bounds = ScaleBounds(RestartButtonBounds);
+        soundButton.Bounds = ScaleBounds(SoundButtonBounds);
         retryButton.Bounds = ScaleBounds(ResultScreen.RetryBounds);
 
         Rectangle ScaleBounds(Rectangle bounds) => Rectangle.Round(new RectangleF(

@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Assets/*.png" LogicalName="FlappyBird.Assets.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="Assets/*.png;Assets/*.wav" LogicalName="FlappyBird.Assets.%(Filename)%(Extension)" />
   </ItemGroup>
 
 </Project>
