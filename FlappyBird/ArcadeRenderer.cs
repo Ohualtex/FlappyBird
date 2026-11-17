@@ -24,7 +24,7 @@ internal sealed class ArcadeRenderer : Component
     private readonly Font hintFont = new(SystemFonts.MessageBoxFont!.FontFamily, 14, FontStyle.Regular, GraphicsUnit.Pixel);
 
     public void Draw(Graphics graphics, Rectangle bounds, GameState game, bool running, bool paused, int bestScore,
-        string? scoreMessage, float startProgress)
+        string? scoreMessage)
     {
         bool ready = !running && !paused && !game.IsGameOver;
         graphics.SmoothingMode = SmoothingMode.AntiAlias;
@@ -39,7 +39,7 @@ internal sealed class ArcadeRenderer : Component
                 DrawPipePair(graphics, obstacle);
             }
 
-            DrawBird(graphics, game, ready ? 0f : startProgress);
+            DrawBird(graphics, game);
             DrawGround(graphics, bounds, game.DistanceTraveled);
         }
         finally
@@ -152,7 +152,7 @@ internal sealed class ArcadeRenderer : Component
         PixelAssets.Draw(graphics, pipeCap, new Rectangle(x, gapBottom, GameState.PipeWidth, rimHeight));
     }
 
-    private void DrawBird(Graphics graphics, GameState game, float startProgress)
+    private void DrawBird(Graphics graphics, GameState game)
     {
         const int center = GameState.BirdSize / 2;
         const float pixelScale = 2.5f;
@@ -163,12 +163,7 @@ internal sealed class ArcadeRenderer : Component
         GraphicsState transform = graphics.Save();
         try
         {
-            const float readyX = GameState.Width / 2f;
-            const float readyY = 320;
-            float blend = startProgress * startProgress * (3f - 2f * startProgress);
-            float x = float.Lerp(readyX, GameState.BirdX + center, blend);
-            float y = float.Lerp(readyY, (float)game.BirdY + center, blend);
-            graphics.TranslateTransform(x, y);
+            graphics.TranslateTransform(game.BirdX + center, (float)game.BirdY + center);
             graphics.RotateTransform(angle);
             PixelAssets.Draw(graphics, frame, new Rectangle(-width / 2, -height / 2, width, height));
         }

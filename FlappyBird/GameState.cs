@@ -4,7 +4,6 @@ internal sealed class GameState
 {
     public const int Width = 480;
     public const int GroundY = 566;
-    public const int BirdX = 95;
     public const int BirdSize = 28;
     public const int PipeWidth = 72;
     public const int PipeRimHeight = 22;
@@ -15,11 +14,18 @@ internal sealed class GameState
     private const int MinimumGapTop = 125;
     private const int MaximumGapTop = 305;
     private const int ScrollSpeed = 4;
+    private const int FlightBirdX = 95;
+    private const int FlightBirdY = 240;
+    private const int ReadyBirdX = (Width - BirdSize) / 2;
+    private const int ReadyBirdY = 320 - BirdSize / 2;
+    // The first pipe reaches the right edge one step before the bird settles into flight.
+    private const int ReadyPipeX = Width + (ReadyBirdX - FlightBirdX - 1) / ScrollSpeed * ScrollSpeed;
 
     private const int WingFlapDuration = 8;
 
     private int wingFlapTicks;
 
+    public int BirdX { get; private set; }
     public double BirdY { get; private set; }
     public double BirdVerticalSpeed { get; private set; }
     public bool IsBirdWingRaised => wingFlapTicks > 0;
@@ -30,15 +36,17 @@ internal sealed class GameState
 
     public GameState() => Reset();
 
-    public void Reset()
+    public void Reset(bool fromReadyScreen = true)
     {
-        BirdY = 240;
+        BirdX = fromReadyScreen ? ReadyBirdX : FlightBirdX;
+        BirdY = fromReadyScreen ? ReadyBirdY : FlightBirdY;
         wingFlapTicks = 0;
         BirdVerticalSpeed = 0;
         Score = 0;
         DistanceTraveled = 0;
         IsGameOver = false;
-        Place(Obstacles[0], Width + 35, Random.Shared.Next(145, 271));
+        int firstPipeX = fromReadyScreen ? ReadyPipeX : Width + 35;
+        Place(Obstacles[0], firstPipeX, Random.Shared.Next(145, 271));
         PlaceAfter(Obstacles[1], Obstacles[0]);
     }
 
@@ -67,6 +75,7 @@ internal sealed class GameState
             BirdVerticalSpeed = 0;
         }
 
+        BirdX = Math.Max(FlightBirdX, BirdX - ScrollSpeed);
         DistanceTraveled += ScrollSpeed;
 
         foreach (Obstacle obstacle in Obstacles)
