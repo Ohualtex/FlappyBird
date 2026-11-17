@@ -38,6 +38,30 @@ Pencere oyun alanının 3:4 oranını koruyarak kenardan veya köşeden yeniden 
 
 Ses efektleri, Dong Nguyen ve .GEARS Studios’un Flappy Bird Android v1.3 sürümünden arşivlenen dosyalardan WAV biçimine dönüştürüldü. [Ses arşivi](https://github.com/FlappyBirdRestored/flappybird-restored/tree/restored/apktool_source/assets/sounds)
 
+## Proje yapısı
+
+```text
+FlappyBird/
+├── FlappyBird.slnx             # Çözüm dosyası
+├── FlappyBird/
+│   ├── FlappyBird.csproj       # WinForms projesi ve gömülü kaynaklar
+│   ├── Program.cs              # Uygulamanın giriş noktası
+│   ├── Form1.cs                 # Girişler, oyun döngüsü ve menüler
+│   ├── GameState.cs             # Oyun fiziği, borular, çarpışma ve skor
+│   ├── ArcadeRenderer.cs        # Oyun sahnesi ve arayüz çizimi
+│   ├── ArcadeButton.cs          # Piksel tarzı düğmeler
+│   ├── PixelHeading.cs          # Piksel başlıklar
+│   ├── ScoreDigits.cs           # Skor rakamları
+│   ├── ResultScreen.cs          # Game Over ekranı
+│   ├── GameAudio.cs             # Ses efektleri ve sessize alma
+│   ├── WaveEffect.cs            # Bağımsız WAV oynatma
+│   ├── HighScoreStore.cs        # Rekor okuma ve kaydetme
+│   ├── WindowSizing.cs          # Pencere boyutu ve en-boy oranı
+│   └── Assets/                  # PNG görseller, WAV efektleri ve uygulama ikonu
+└── docs/
+    └── screenshots/            # README’deki oyun ekran görüntüleri
+```
+
 ## Ekran görüntüleri
 
 **Başlangıç**
