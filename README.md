@@ -1,81 +1,87 @@
 # <img src="FlappyBird/Assets/bird-idle.png" width="32" height="28" alt=""> Flappy Bird
 
-Boşluk tuşuyla veya oyun alanına sol tıklayarak zıplayıp boruların arasından geçtiğiniz bir Windows Forms oyunu. Her geçilen boru çifti bir puan kazandırır. Boruya veya zemine çarpınca oyun durur.
+A Flappy Bird remake in C# with Windows Forms. Flap through the gaps using Space or the left mouse button. Each pipe pair you pass earns one point. Hitting a pipe or the ground ends the round.
 
-## Teknolojiler
+## Technologies
 
-- C# ve .NET 10
-- Windows Forms ve `System.Windows.Forms.Timer`
+- C# and .NET 10
+- Windows Forms and `System.Windows.Forms.Timer`
 
-## Kurulum ve çalıştırma
+## Build and run
 
-Windows ve .NET 10 SDK gerekir. Depoyu yerel olarak açıp kök klasörde şu komutları çalıştırın:
+Requires Windows and the .NET 10 SDK. Open a terminal in the repository root and run:
 
 ```powershell
 dotnet build FlappyBird.slnx
 dotnet run --project FlappyBird/FlappyBird.csproj
 ```
 
-`FlappyBird.slnx` dosyasını .NET 10 destekleyen Visual Studio ile de açabilirsiniz.
+You can also open `FlappyBird.slnx` in a version of Visual Studio that supports .NET 10.
 
-## Kontroller ve oyun kuralları
+## Controls and rules
 
-- **Boşluk / Sol tık:** **HAZIR OL** ekranında ilk sıçramayı yapıp turu başlatır. Tur sırasında kuşu yukarı iter. Fareyle oynamak için oyun alanına tıklayın.
-- **Tekrar oyna:** Game Over ekranı tur skorunu ve rekoru gösterir. Kısa bekleme ve çarpışma sesi tamamlandıktan sonra turuncu düğmeye veya oyun alanına tıklayın ya da Boşluk tuşuna basın. Ses kapalıysa bekleme 300 ms sürer.
-- Başlangıçta kuş ortadan normal oyun hizasına kayar. Kuş hizaya ulaştığında ilk boru sağ kenardan görünür. İki boru çifti sağdan sola ilerler. Boru açıklığı 120 oyun pikselidir. Açıklığın dikey konumu ve boru çiftleri arasındaki yatay mesafe rastgele belirlenir. Ekrandan çıkan çift sağda yeni bir konumda belirir.
-- **Esc / Duraklatma düğmesi:** Aktif turu duraklatır veya kaldığı yerden sürdürür. Sol üstteki turuncu düğme fareyle aynı işlevi görür. Menüdeki **Devam et** turu sürdürür, **Yeni oyun** ise skoru sıfırlayıp başlangıç ekranına döner.
-- **Ses: Açık / Kapalı:** Duraklatma menüsünden kanat çırpma, puan ve çarpışma efektlerini bu oturum için açıp kapatır.
+- **Space / Left click:** Start the round with the first flap on the **GET READY** screen. During play, press Space or click the play area to flap again.
+- **Esc / Pause button:** Pause or resume the round. The orange button is in the upper-left corner. In the menu, **Resume** continues the round and **New game** returns to the ready screen with the score reset.
+- **Sound: On / Off:** Toggle wing, point, and collision effects for the current session from the pause menu.
+- **Play again:** After a crash, wait for the short delay and the collision sound to end. Then click **Play again**, click the play area, or press Space. With sound off, the delay is 300 ms.
 
-Pencere oyun alanının 3:4 oranını koruyarak kenardan veya köşeden yeniden boyutlandırılabilir. Büyüt düğmesi pencereyi monitörün kullanılabilir alanına sığan en büyük boyuta getirir. Düğmeye tekrar basarak önceki boyuta dönebilirsiniz. Minimum oyun alanı 480 × 640 pikseldir.
+From the ready screen, the bird starts in the center and slides into its usual flight position as the first pipe enters. Two pipe pairs scroll from right to left. Each gap is 120 game pixels high. Its vertical position and the horizontal spacing between pairs are randomized.
 
-## Tasarım ve sınırlamalar
+Resize the window from any edge or corner to keep the play area at a 3:4 aspect ratio. The maximize button fits the window to the monitor's work area. Press it again to restore the previous size. The minimum play area is 480 × 640 pixels.
 
-`GameState` hareket, çarpışma, engeller ve skoru yönetir. Windows Forms klavye ve fare girişini alır, zamanlayıcıyla oyun durumunu günceller. `ArcadeRenderer` oyun sahnesini ve arayüzü çizer. Çarpışma sınır dikdörtgenleriyle hesaplanır. Tur skoru her yeni oyunda sıfırlanır. Rekor, tur sonunda yükselirse Windows kullanıcı profilindeki `%LOCALAPPDATA%/FlappyBird/high-score.txt` dosyasına kaydedilir. Kayıt sorunu varsa oyun devam eder ve arayüzde durum gösterilir.
+## Design and limitations
 
-Üst ortadaki sayaç, geçilen boru çiftlerini siyah konturlu beyaz rakamlarla gösterir. Arka plan kodla çizilir. Kuş, borular ve zemin gömülü PNG varlıklarını kullanır. Pencere ve görev çubuğunda kuş simgesi görünür.
+`GameState` manages movement, obstacles, collision, and scoring. Windows Forms handles keyboard and mouse input and updates the game on a timer. `ArcadeRenderer` draws the scene and interface. Collision checks use bounding rectangles.
 
-`GameAudio` gömülü WAV efektlerini yönetir. Puan ve çarpışma efektleri ayrı oynatma akışları kullandığı için diğer seslerle birlikte duyulabilir.
+The score resets each round. A new best score is stored in `%LOCALAPPDATA%/FlappyBird/high-score.txt`. If the file cannot be read or saved, the game continues and shows a status message.
 
-Ses efektleri, Dong Nguyen ve .GEARS Studios’un Flappy Bird Android v1.3 sürümünden arşivlenen dosyalardan WAV biçimine dönüştürüldü. [Ses arşivi](https://github.com/FlappyBirdRestored/flappybird-restored/tree/restored/apktool_source/assets/sounds)
+The background is drawn in code. The bird, pipes, and ground use embedded PNG assets. The bird icon appears in the window title bar and taskbar.
 
-## Proje yapısı
+`GameAudio` manages embedded WAV effects. Point and collision effects use independent playback so they can be heard alongside other sounds.
+
+The sound effects were converted to WAV from archived assets of Flappy Bird for Android v1.3 by Dong Nguyen and .GEARS Studios. [Sound archive](https://github.com/FlappyBirdRestored/flappybird-restored/tree/restored/apktool_source/assets/sounds)
+
+## Project structure
 
 ```text
 FlappyBird/
-├── FlappyBird.slnx             # Çözüm dosyası
+├── FlappyBird.slnx             # Solution
 ├── FlappyBird/
-│   ├── FlappyBird.csproj       # WinForms projesi ve gömülü kaynaklar
-│   ├── Program.cs              # Uygulamanın giriş noktası
-│   ├── Form1.cs                 # Girişler, oyun döngüsü ve menüler
-│   ├── GameState.cs             # Oyun fiziği, borular, çarpışma ve skor
-│   ├── ArcadeRenderer.cs        # Oyun sahnesi ve arayüz çizimi
-│   ├── ArcadeButton.cs          # Piksel tarzı düğmeler
-│   ├── PixelHeading.cs          # Piksel başlıklar
-│   ├── ScoreDigits.cs           # Skor rakamları
-│   ├── ResultScreen.cs          # Game Over ekranı
-│   ├── GameAudio.cs             # Ses efektleri ve sessize alma
-│   ├── WaveEffect.cs            # Bağımsız WAV oynatma
-│   ├── HighScoreStore.cs        # Rekor okuma ve kaydetme
-│   ├── WindowSizing.cs          # Pencere boyutu ve en-boy oranı
-│   └── Assets/                  # PNG görseller, WAV efektleri ve uygulama ikonu
-└── docs/
-    └── screenshots/            # README’deki oyun ekran görüntüleri
+│   ├── FlappyBird.csproj       # WinForms project and embedded resources
+│   ├── Program.cs              # Application entry point
+│   ├── Form1.cs                # Input, game loop, and menus
+│   ├── Form1.Designer.cs       # Form initialization and disposal
+│   ├── GameState.cs            # Physics, obstacles, collision, and score
+│   ├── ArcadeRenderer.cs       # Game scene and interface rendering
+│   ├── ArcadeButton.cs         # Pixel-style buttons
+│   ├── PixelAssets.cs          # Loading and drawing sprites
+│   ├── PixelHeading.cs         # Pixel-style headings
+│   ├── ScoreDigits.cs          # Score digits
+│   ├── ResultScreen.cs         # Game Over screen
+│   ├── GameAudio.cs            # Sound effects and mute
+│   ├── WaveEffect.cs           # Independent WAV playback
+│   ├── HighScoreStore.cs       # Best score persistence
+│   ├── WindowSizing.cs         # Window size and aspect ratio
+│   └── Assets/                 # PNG sprites, WAV effects, and application icon
+├── docs/
+│   └── screenshots/           # In-game screenshots
+└── README.md
 ```
 
-## Ekran görüntüleri
+## Screenshots
 
-**Başlangıç**
+**Ready screen**
 
-![HAZIR OL başlığı, ortadaki kuş ve Tıkla veya Boşluk ipucu](docs/screenshots/start.png)
+![Get Ready heading, bird, and instruction to click or press Space](docs/screenshots/start.png)
 
-**Oyun sırasında**
+**Gameplay**
 
-![Boru çiftlerine yaklaşan kuş, skor sayacı ve duraklatma düğmesi](docs/screenshots/gameplay.png)
+![Bird approaching the pipes with the score and pause button visible](docs/screenshots/gameplay.png)
 
-**Duraklatma menüsü**
+**Pause menu**
 
-![Piksel başlıklı duraklatma menüsünde Devam et, Yeni oyun ve Ses seçenekleri](docs/screenshots/pause.png)
+![Pause menu with Resume, New game, and Sound controls](docs/screenshots/pause.png)
 
-**Çarpışma sonrası**
+**Game Over**
 
-![Game Over başlığı, skor ve rekor paneli ile turuncu Tekrar oyna düğmesi](docs/screenshots/game-over.png)
+![Game Over screen with the score, best score, and Play again button](docs/screenshots/game-over.png)
