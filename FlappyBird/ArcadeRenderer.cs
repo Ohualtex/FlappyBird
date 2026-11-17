@@ -8,7 +8,6 @@ internal sealed class ArcadeRenderer : Component
 {
     internal static readonly Color Ink = Color.FromArgb(23, 48, 65);
     internal static readonly Color Cream = Color.FromArgb(255, 248, 216);
-    internal static readonly Color Gold = Color.FromArgb(255, 201, 66);
 
     private readonly Bitmap landscape = CreateLandscape();
     private readonly Bitmap birdIdle = PixelAssets.Load("bird-idle");
@@ -19,7 +18,6 @@ internal sealed class ArcadeRenderer : Component
     private const int GroundTileWidth = 28;
 
     private readonly Bitmap groundStrip = CreateGroundStrip();
-    private readonly Font titleFont = new(SystemFonts.MessageBoxFont!.FontFamily, 30, FontStyle.Bold, GraphicsUnit.Pixel);
     private readonly Font labelFont = new(SystemFonts.MessageBoxFont!.FontFamily, 14, FontStyle.Bold, GraphicsUnit.Pixel);
     private readonly Font hintFont = new(SystemFonts.MessageBoxFont!.FontFamily, 14, FontStyle.Regular, GraphicsUnit.Pixel);
 
@@ -57,7 +55,7 @@ internal sealed class ArcadeRenderer : Component
         {
             using var dim = new SolidBrush(Color.FromArgb(165, Ink));
             graphics.FillRectangle(dim, bounds);
-            DrawCentered(graphics, "DURAKLATILDI", titleFont, Cream, new Rectangle(20, 210, 440, 50));
+            PixelHeading.Draw(graphics, "DURAKLATILDI", 218, pixel: 4);
         }
         else if (game.IsGameOver)
         {
@@ -224,7 +222,6 @@ internal sealed class ArcadeRenderer : Component
             pipeBody.Dispose();
             pipeCap.Dispose();
             groundStrip.Dispose();
-            titleFont.Dispose();
             labelFont.Dispose();
             hintFont.Dispose();
         }

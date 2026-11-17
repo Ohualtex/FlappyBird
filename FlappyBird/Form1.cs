@@ -8,10 +8,9 @@ public partial class Form1 : Form
     private const int GameHeight = 640;
     private const int RetryInputDelayMs = 300;
     private static readonly Rectangle PauseButtonBounds = new(16, 16, 44, 44);
-    private static readonly Rectangle ResumeButtonBounds = new(120, 278, 240, 44);
-    private static readonly Rectangle RestartButtonBounds = new(120, 334, 240, 44);
-
-    private static readonly Rectangle SoundButtonBounds = new(120, 390, 240, 44);
+    private static readonly Rectangle ResumeButtonBounds = new(138, 280, 204, 42);
+    private static readonly Rectangle RestartButtonBounds = new(138, 330, 204, 42);
+    private static readonly Rectangle SoundButtonBounds = new(138, 380, 204, 42);
 
     private readonly GameState game = new();
     private readonly ArcadeRenderer renderer = new();
@@ -19,9 +18,9 @@ public partial class Form1 : Form
     private readonly System.Windows.Forms.Timer gameTimer;
     private readonly ArcadeButton pauseButton;
     private readonly ArcadeButton retryButton;
-    private readonly Button resumeButton;
-    private readonly Button restartButton;
-    private readonly Button soundButton;
+    private readonly ArcadeButton resumeButton;
+    private readonly ArcadeButton restartButton;
+    private readonly ArcadeButton soundButton;
     private bool paused;
     private long retryAllowedAt;
     private Rectangle? restoreWindowBounds;
@@ -71,9 +70,9 @@ public partial class Form1 : Form
             Visible = false
         };
         pauseButton.Click += (_, _) => TogglePause();
-        resumeButton = CreatePauseAction("Devam et", ArcadeRenderer.Gold);
+        resumeButton = new ArcadeButton(DrawScene) { Text = "Devam et", Visible = false };
         resumeButton.Click += (_, _) => TogglePause();
-        restartButton = CreatePauseAction("Yeni oyun", ArcadeRenderer.Cream);
+        restartButton = new ArcadeButton(DrawScene, creamFace: true) { Text = "Yeni oyun", Visible = false };
         restartButton.Click += (_, _) => ResetGame();
         retryButton = new ArcadeButton(DrawScene)
         {
@@ -81,11 +80,15 @@ public partial class Form1 : Form
             Visible = false
         };
         retryButton.Click += (_, _) => FlapOrRestart();
-        soundButton = CreatePauseAction("Ses: Açık", ArcadeRenderer.Cream);
+        soundButton = new ArcadeButton(DrawScene, creamFace: true, showsSpeaker: true)
+        {
+            Text = "Ses: Açık",
+            Visible = false
+        };
         soundButton.Click += (_, _) =>
         {
             audio.ToggleMute();
-            soundButton.Text = audio.Muted ? "Ses: Kapalı" : "Ses: Açık";
+            soundButton.SetSpeakerMuted(audio.Muted);
         };
         Controls.AddRange([pauseButton, resumeButton, restartButton, soundButton, retryButton]);
 
@@ -178,22 +181,7 @@ public partial class Form1 : Form
         }
     }
 
-    private static Button CreatePauseAction(string text, Color background)
-    {
-        var button = new Button
-        {
-            Text = text,
-            Visible = false,
-            BackColor = background,
-            ForeColor = ArcadeRenderer.Ink,
-            FlatStyle = FlatStyle.Flat,
-            UseVisualStyleBackColor = false
-        };
-        button.FlatAppearance.BorderColor = ArcadeRenderer.Ink;
-        return button;
-    }
-
-    private void TogglePause()
+   private void TogglePause()
     {
         if (!paused && !gameTimer.Enabled)
         {
