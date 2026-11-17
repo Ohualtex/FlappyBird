@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 
 namespace FlappyBird;
 
-internal sealed class PointAudio : IDisposable
+internal sealed class WaveEffect(string name) : IDisposable
 {
     private const uint WaveMapper = uint.MaxValue;
     private const uint BufferInQueue = 0x10;
@@ -12,6 +12,9 @@ internal sealed class PointAudio : IDisposable
     private nint samples;
     private nint header;
     private bool openAttempted;
+
+    public bool IsPlaying => device != 0
+        && (Marshal.PtrToStructure<WaveHeader>(header).Flags & BufferInQueue) != 0;
 
     public void Play()
     {
@@ -26,7 +29,7 @@ internal sealed class PointAudio : IDisposable
             return;
         }
 
-        if ((Marshal.PtrToStructure<WaveHeader>(header).Flags & BufferInQueue) == 0)
+        if (!IsPlaying)
         {
             waveOutWrite(device, header, HeaderSize);
         }
@@ -42,7 +45,7 @@ internal sealed class PointAudio : IDisposable
 
     private void Open()
     {
-        using Stream? stream = typeof(PointAudio).Assembly.GetManifestResourceStream("FlappyBird.Assets.point.wav");
+        using Stream? stream = typeof(WaveEffect).Assembly.GetManifestResourceStream($"FlappyBird.Assets.{name}.wav");
         if (stream is null)
         {
             return;

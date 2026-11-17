@@ -6,6 +6,7 @@ namespace FlappyBird;
 public partial class Form1 : Form
 {
     private const int GameHeight = 640;
+    private const int RetryInputDelayMs = 300;
     private static readonly Rectangle PauseButtonBounds = new(16, 16, 44, 44);
     private static readonly Rectangle ResumeButtonBounds = new(120, 278, 240, 44);
     private static readonly Rectangle RestartButtonBounds = new(120, 334, 240, 44);
@@ -22,6 +23,7 @@ public partial class Form1 : Form
     private readonly Button restartButton;
     private readonly Button soundButton;
     private bool paused;
+    private long retryAllowedAt;
     private Rectangle? restoreWindowBounds;
 
     private readonly HighScoreStore highScoreStore;
@@ -232,6 +234,11 @@ public partial class Form1 : Form
 
         if (game.IsGameOver)
         {
+            if (Environment.TickCount64 < retryAllowedAt || audio.IsHitPlaying)
+            {
+                return;
+            }
+
             game.Reset(fromReadyScreen: false);
         }
 
@@ -253,6 +260,7 @@ public partial class Form1 : Form
         if (game.IsGameOver)
         {
             gameTimer.Stop();
+            retryAllowedAt = Environment.TickCount64 + RetryInputDelayMs;
             audio.PlayHit();
             SaveHighScore();
             UpdateGameControls();

@@ -6,11 +6,12 @@ namespace FlappyBird;
 internal sealed class GameAudio : Component
 {
     private readonly SoundPlayer? flap = Load("flap");
-    private readonly PointAudio point = new();
-    private readonly SoundPlayer? hit = Load("hit");
+    private readonly WaveEffect point = new("point");
+    private readonly WaveEffect hit = new("hit");
     private SoundPlayer? active;
 
     public bool Muted { get; private set; }
+    public bool IsHitPlaying => hit.IsPlaying;
 
     public void PlayFlap() => Play(flap);
     public void PlayPoint()
@@ -21,7 +22,13 @@ internal sealed class GameAudio : Component
         }
     }
 
-    public void PlayHit() => Play(hit);
+    public void PlayHit()
+    {
+        if (!Muted)
+        {
+            hit.Play();
+        }
+    }
 
     public void ToggleMute()
     {
@@ -30,6 +37,7 @@ internal sealed class GameAudio : Component
         {
             active?.Stop();
             point.Stop();
+            hit.Stop();
             active = null;
         }
     }
@@ -81,7 +89,7 @@ internal sealed class GameAudio : Component
             active?.Stop();
             point.Dispose();
             DisposePlayer(flap);
-            DisposePlayer(hit);
+            hit.Dispose();
         }
 
         base.Dispose(disposing);
