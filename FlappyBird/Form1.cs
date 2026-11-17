@@ -5,6 +5,8 @@ namespace FlappyBird;
 
 public partial class Form1 : Form
 {
+    private static readonly Icon WindowIcon = new(typeof(Form1), "Assets.app.ico");
+
     private const int GameHeight = 640;
     private const int RetryInputDelayMs = 300;
     private static readonly Rectangle PauseButtonBounds = new(16, 16, 44, 44);
@@ -39,6 +41,7 @@ public partial class Form1 : Form
     {
         InitializeComponent();
         Text = "Flappy Bird";
+        Icon = WindowIcon;
         FormBorderStyle = FormBorderStyle.Sizable;
         Size frame = GetFrameSize();
         MinimumSize = SizeFromClientSize(new Size(GameState.Width, GameHeight));
